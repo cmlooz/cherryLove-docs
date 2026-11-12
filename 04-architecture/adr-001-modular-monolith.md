@@ -3,6 +3,7 @@ id: ADR-001
 status: approved
 approved_by: Camilo
 approved_at: 2026-11-11
+amended_by: ADR-007 (adds module `media` to §1)
 ---
 
 # ADR-001 — Modular monolith, hexagonal layers, dependency rules
@@ -64,6 +65,7 @@ Without written rules, a Django project drifts back to fat models and views that
 | `sync` | Client operation log, change cursor | SYNC |
 | `audit` | Audit event | LOG, ADM-07 |
 | `backoffice` | Staff roles, quotas, metrics, admin views | ADM-03…08 |
+| `media` *(added by ADR-007)* | MediaAsset, couple storage counter | MEM-08/09/10, SONG-05, ACC-01, ADM-05 |
 | `shared` (kernel) | IDs (UUIDv7), `CoupleId`, `UserId`, clock, base errors, event bus port | — |
 
 **Why `memories` holds Memory, Song and Place together:** REQ-F-SONG-07 (one relation edited from both
