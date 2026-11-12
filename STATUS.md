@@ -28,6 +28,7 @@ Control board for human approval. Nothing below `approved` is a decision.
 | C4-001 | `04-architecture/c4-context-containers.md` | **approved** | Camilo | 2026-11-11 |
 | ADR-001 | `04-architecture/adr-001-modular-monolith.md` | **approved** | Camilo | 2026-11-11 |
 | ADR-002 | `04-architecture/adr-002-folder-structure.md` | **approved** | Camilo | 2026-11-11 |
+| ADR-003 | `04-architecture/adr-003-openapi-contract.md` | **approved** | Camilo | 2026-11-11 |
 | ADR-* | `04-architecture/` (index in README) | not_started | | |
 | LEARN-001 | `05-learning/` | not_started | | |
 | IMPL-* | `06-implementation/` | not_started | | |
