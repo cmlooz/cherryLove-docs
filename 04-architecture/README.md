@@ -13,7 +13,7 @@ Format: MADR (context → options → decision → consequences → REQ IDs).
 |----|-------|------|--------|
 | C4-001 | C4 level 1 and 2 (context, containers) | `c4-context-containers.md` | **approved** |
 | ADR-001 | Modular monolith, hexagonal layers, dependency rules | `adr-001-modular-monolith.md` | **approved** |
-| ADR-002 | Folder structure per repo | — | not_started |
+| ADR-002 | Folder structure per repo | `adr-002-folder-structure.md` | **approved** |
 | ADR-003 | OpenAPI contract-first and versioning | — | not_started |
 | ADR-004 | Authentication (JWT, rotation, web cookies, mobile secure storage) | — | not_started |
 | ADR-005 | Couple-scoped authorization | — | not_started |
