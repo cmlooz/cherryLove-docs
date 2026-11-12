@@ -18,6 +18,7 @@ None.
 | ID | Question | Recommendation |
 |----|----------|----------------|
 | OQ-002 | Staff accounts can archive couples and see metadata (REQ-F-ADM-*), but no frozen requirement asks for a second factor on staff login (raised by ADR-004 §5). | Add TOTP 2FA for staff in v1 as a new REQ ID. Staff are few, the admin is the most privileged surface, and Django has mature TOTP support. |
+| OQ-004 | DEC-009 names MinIO for local object storage, but the `minio/minio` repository is archived and "no longer maintained" (last release 2025-10-15; image no longer on Docker Hub). Raised by ADR-016. | Keep "S3-compatible" (DEC-009) and replace MinIO with a maintained S3-compatible server chosen by a short spike in plan F. Acceptance test: presigned **POST** with `content-length-range` and `Content-Type` conditions (ADR-007 §2) works. |
 
 ## Resolved open questions
 
