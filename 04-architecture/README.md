@@ -27,7 +27,7 @@ Format: MADR (context → options → decision → consequences → REQ IDs).
 | ADR-013 | Notifications and background jobs | `adr-013-notifications-jobs.md` | **approved** |
 | ADR-014 | Testing strategy | `adr-014-testing-strategy.md` | **approved** |
 | ADR-015 | CI | `adr-015-ci.md` | **approved** |
-| DATA-001 | Data model (ERD, indexes, constraints) | — | not_started |
+| DATA-001 | Data model (ERD, indexes, constraints) | `data-001-data-model.md` | **approved** |
 | API-001 | OpenAPI v1 skeleton | — | not_started |
 | ADR-016 | Pinned versions | — | not_started |
 

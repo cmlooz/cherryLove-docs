@@ -41,6 +41,7 @@ Control board for human approval. Nothing below `approved` is a decision.
 | ADR-013 | `04-architecture/adr-013-notifications-jobs.md` | **approved** | Camilo | 2026-11-12 |
 | ADR-014 | `04-architecture/adr-014-testing-strategy.md` | **approved** | Camilo | 2026-11-12 |
 | ADR-015 | `04-architecture/adr-015-ci.md` | **approved** | Camilo | 2026-11-12 |
+| DATA-001 | `04-architecture/data-001-data-model.md` | **approved** | Camilo | 2026-11-12 |
 | ADR-* | `04-architecture/` (index in README) | not_started | | |
 | LEARN-001 | `05-learning/` | not_started | | |
 | IMPL-* | `06-implementation/` | not_started | | |
