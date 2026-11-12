@@ -31,6 +31,7 @@ Control board for human approval. Nothing below `approved` is a decision.
 | ADR-003 | `04-architecture/adr-003-openapi-contract.md` | **approved** | Camilo | 2026-11-11 |
 | ADR-004 | `04-architecture/adr-004-authentication.md` | **approved** | Camilo | 2026-11-11 |
 | ADR-005 | `04-architecture/adr-005-couple-authorization.md` | **approved** | Camilo | 2026-11-11 |
+| ADR-006 | `04-architecture/adr-006-offline-sync.md` | **approved** | Camilo | 2026-11-11 |
 | ADR-* | `04-architecture/` (index in README) | not_started | | |
 | LEARN-001 | `05-learning/` | not_started | | |
 | IMPL-* | `06-implementation/` | not_started | | |
