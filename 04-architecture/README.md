@@ -15,7 +15,7 @@ Format: MADR (context → options → decision → consequences → REQ IDs).
 | ADR-001 | Modular monolith, hexagonal layers, dependency rules | `adr-001-modular-monolith.md` | **approved** |
 | ADR-002 | Folder structure per repo | `adr-002-folder-structure.md` | **approved** |
 | ADR-003 | OpenAPI contract-first and versioning | `adr-003-openapi-contract.md` | **approved** |
-| ADR-004 | Authentication (JWT, rotation, web cookies, mobile secure storage) | — | not_started |
+| ADR-004 | Authentication (JWT, rotation, web cookies, mobile secure storage) | `adr-004-authentication.md` | **approved** |
 | ADR-005 | Couple-scoped authorization | — | not_started |
 | ADR-006 | Offline sync model (UUIDv7, client_op_id, version, tombstones, cursor) | — | not_started |
 | ADR-007 | Media storage (S3/MinIO, signed URLs, quotas) | — | not_started |
