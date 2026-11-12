@@ -55,6 +55,7 @@ Control board for human approval. Nothing below `approved` is a decision.
 
 37 decisions approved → `00-governance/decision-log.md` (DEC-001…DEC-037).
 Requirements frozen on 2026-11-11 (DEC-035). Sessions B, C, D, E are unblocked.
+Architecture (session C) approved on 2026-11-12: C4-001, ADR-001…016, DATA-001, API-001. Sessions F, H2, R are unblocked; G and H also need B.
 
 ## Blocked on you
 

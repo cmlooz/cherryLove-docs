@@ -24,4 +24,8 @@ Copy-paste prompts to open each Claude Code session. Open Claude Code at the **w
 | D — Learning plan | `D-learning-plan.md` | A approved (richer after C) | B, C |
 | E — Agents & skills | `E-agents-skills.md` | C approved | F, H2 |
 | R — Code repo bootstrap | `R-repo-bootstrap.md` | C approved + GitHub connected | E |
-| F / G / H / H2 / I | written at the end of session C (they need the ADRs) | see `session-map.md` | — |
+| F — Plan: API | `F-plan-api.md` | C approved | H2, B |
+| H2 — Plan: core | `H2-plan-core.md` | C approved | F, B |
+| G — Plan: web | `G-plan-web.md` | B + C approved, H2 in review | H |
+| H — Plan: mobile | `H-plan-mobile.md` | B + C approved, H2 in review | G |
+| I — Test plan + evidence | `I-test-plan.md` | F, G, H, H2 phases in review | — |
