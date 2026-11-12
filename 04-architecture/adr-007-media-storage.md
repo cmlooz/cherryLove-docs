@@ -6,6 +6,9 @@ approved_at: 2026-11-11
 amends: ADR-001 §1 (adds module `media`)
 ---
 
+> **Note (DEC-037, 2026-11-12):** MinIO is no longer maintained. Read "MinIO" below as "the local
+> S3-compatible server chosen by the plan F spike"; every rule in this ADR is unchanged.
+
 # ADR-007 — Media storage
 
 Implements: DEC-009, DEC-010, DEC-020, REQ-N-SEC-06, REQ-N-PERF-05, REQ-F-MEM-08/09/10, REQ-F-SONG-05,

@@ -64,3 +64,4 @@ Append-only. Each row was answered explicitly by Camilo. Changing a decision = n
 | ID | Topic | Decision |
 |----|-------|----------|
 | DEC-036 | Anniversary reminder cadence (OQ-003) | **Yearly** anniversary from relationship start in v1. A monthly reminder would need a new REQ ID. |
+| DEC-037 | Local object storage (OQ-004) | MinIO is dropped (repository archived, no longer maintained). DEC-009 stands for "S3-compatible object storage + device cache"; the local server is chosen by a spike in the first step of plan F. Acceptance test: presigned POST with `content-length-range` and `Content-Type` conditions (ADR-007 §2). Supersedes the "MinIO locally" part of DEC-009. |

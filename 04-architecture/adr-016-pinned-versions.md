@@ -61,7 +61,7 @@ Effects on approved ADRs (no contradiction, adapters absorb them):
 | Redis | **8.8.4** (`redis:8.8.4-alpine`) | ADR-011 |
 | Node.js | **24.x LTS** (24.22.3) | Maintenance LTS until 2028-04-30; accepted by Expo SDK 58 (`^24.3.0`). Node 26 became LTS on 2026-10-28; adopt it after the ecosystem settles |
 | Mail catcher | **Mailpit v1.33.1** | REQ-N-OPS-01 |
-| Object storage (local) | **blocked by OQ-004** | See below |
+| Object storage (local) | **chosen by plan F spike** (DEC-037) | See below |
 
 ### OQ-004 — MinIO is no longer maintained
 
@@ -128,7 +128,7 @@ Dev only: `vitest` 5.1.0 (core, web), `jest` 30.5.2 + `jest-expo` 58.0.14 (mobil
 - ✅ Two-year support window on the backend framework (5.2 LTS until 2028-04).
 - ❌ We start one Django feature line behind (no built-in CSP or `django.tasks`); both bridged without dependencies.
 - ❌ TypeScript 5.9 forgoes the native TS 7 compiler speed until the tooling supports it.
-- ⚠️ Local object storage is blocked until OQ-004 is answered.
+- ⚠️ Local object storage server is pinned by the plan F spike (DEC-037).
 
 ## Next step
 

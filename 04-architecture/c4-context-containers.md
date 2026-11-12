@@ -5,6 +5,9 @@ approved_by: Camilo
 approved_at: 2026-11-11
 ---
 
+> **Note (DEC-037, 2026-11-12):** "MinIO locally" now means "a maintained S3-compatible server chosen in
+> plan F"; the diagrams are otherwise unchanged.
+
 # C4 — Level 1 (context) and level 2 (containers)
 
 Purpose: one picture of who uses CherryLove, which deployable pieces exist, and what they talk to.
