@@ -13,6 +13,12 @@ All v0 questions were answered on 2026-11-09. Decisions live in `00-governance/d
 
 None.
 
+## Still open (post-freeze, does not block)
+
+| ID | Question | Recommendation |
+|----|----------|----------------|
+| OQ-002 | Staff accounts can archive couples and see metadata (REQ-F-ADM-*), but no frozen requirement asks for a second factor on staff login (raised by ADR-004 §5). | Add TOTP 2FA for staff in v1 as a new REQ ID. Staff are few, the admin is the most privileged surface, and Django has mature TOTP support. |
+
 ## Resolved open questions
 
 | ID | Resolved by | Outcome |

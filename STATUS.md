@@ -23,7 +23,7 @@ Control board for human approval. Nothing below `approved` is a decision.
 | REQ-DOC-001 | `02-requirements/functional.md` | **approved** (frozen) | Camilo | 2026-11-11 |
 | REQ-DOC-002 | `02-requirements/nfr.md` | **approved** (frozen) | Camilo | 2026-11-11 |
 | REQ-DOC-003 | `02-requirements/roles-actuators.md` | **approved** (frozen) | Camilo | 2026-11-11 |
-| REQ-DOC-004 | `02-requirements/open-questions.md` | **approved** (0 open) | Camilo | 2026-11-11 |
+| REQ-DOC-004 | `02-requirements/open-questions.md` | **approved** (1 open post-freeze: OQ-002) | Camilo | 2026-11-11 |
 | UX-001 | `03-ux-ui/` | not_started | | |
 | C4-001 | `04-architecture/c4-context-containers.md` | **approved** | Camilo | 2026-11-11 |
 | ADR-001 | `04-architecture/adr-001-modular-monolith.md` | **approved** | Camilo | 2026-11-11 |
