@@ -28,7 +28,7 @@ Format: MADR (context → options → decision → consequences → REQ IDs).
 | ADR-014 | Testing strategy | `adr-014-testing-strategy.md` | **approved** |
 | ADR-015 | CI | `adr-015-ci.md` | **approved** |
 | DATA-001 | Data model (ERD, indexes, constraints) | `data-001-data-model.md` | **approved** |
-| API-001 | OpenAPI v1 skeleton | — | not_started |
+| API-001 | OpenAPI v1 skeleton | `api-001-openapi-v1.yaml` | **approved** |
 | ADR-016 | Pinned versions | — | not_started |
 
 Order follows `00-governance/session-prompts/C-architecture.md`. Numbers are reserved; a rejected ADR keeps

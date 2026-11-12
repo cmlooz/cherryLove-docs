@@ -1,0 +1,1160 @@
+openapi: 3.1.0
+# API-001 — OpenAPI v1 skeleton. Approved contract source until session R moves it to
+# cherrylove-api/contract/openapi.v1.yaml (ADR-003 §1). Conventions: ADR-003 §5.
+x-doc:
+  id: API-001
+  status: approved
+  approved_by: Camilo
+  approved_at: 2026-11-12
+  implements: [ADR-003, ADR-004, ADR-005, ADR-006, ADR-007, ADR-010, DATA-001]
+info:
+  title: CherryLove API
+  version: 1.0.0-skeleton
+  license:
+    name: Proprietary (private project)
+    identifier: LicenseRef-Proprietary
+  description: |
+    Skeleton of every v1 endpoint per module. Field lists are the contract minimum; plan F completes
+    examples and per-endpoint error-code enums before the first implementation step.
+servers:
+  - url: /api/v1
+security:
+  - bearerAuth: []
+tags:
+  - { name: identity, description: "Auth, invites, onboarding, account (REQ-F-AUTH, REQ-F-ACC)" }
+  - { name: home, description: "Couple header and favorites timeline (REQ-F-HOME)" }
+  - { name: cards, description: "Daily cards (REQ-F-CARD)" }
+  - { name: memories, description: "Memories, songs, places (REQ-F-MEM, REQ-F-SONG, REQ-F-PLACE)" }
+  - { name: diary, description: "Notes (REQ-F-NOTE)" }
+  - { name: favorites, description: "Personal favorites (REQ-F-FAV)" }
+  - { name: media, description: "Uploads and signed URLs (ADR-007)" }
+  - { name: notifications, description: "Devices and preferences (REQ-F-NOTIF)" }
+  - { name: sync, description: "Offline push/pull (ADR-006)" }
+
+paths:
+  # ---------------------------------------------------------------- identity
+  /auth/login:
+    post:
+      tags: [identity]
+      operationId: identity_create_session
+      summary: Log in (REQ-F-AUTH-07, ADR-004 §2)
+      security: []
+      parameters: [{ $ref: "#/components/parameters/RequestId" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LoginInput" }
+      responses:
+        "200":
+          description: Access token; web gets the refresh token as an HttpOnly cookie, mobile in the body.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TokenPair" }
+        "400": { $ref: "#/components/responses/ValidationFailed" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "429": { $ref: "#/components/responses/Problem" }
+  /auth/refresh:
+    post:
+      tags: [identity]
+      operationId: identity_refresh_session
+      summary: Rotate the refresh token (ADR-004 §2–3)
+      security: [{ refreshCookie: [] }, {}]
+      parameters:
+        - { $ref: "#/components/parameters/RequestId" }
+        - { $ref: "#/components/parameters/ClientHeader" }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RefreshInput" }
+      responses:
+        "200":
+          description: New pair (same cookie/body rule as login).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TokenPair" }
+        "401": { $ref: "#/components/responses/Problem" }
+  /auth/logout:
+    post:
+      tags: [identity]
+      operationId: identity_delete_session
+      summary: Log out (REQ-F-ACC-06)
+      parameters:
+        - { $ref: "#/components/parameters/RequestId" }
+        - { $ref: "#/components/parameters/ClientHeader" }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RefreshInput" }
+      responses:
+        "204": { description: Refresh token blacklisted; cookie cleared on web. }
+        "401": { $ref: "#/components/responses/Problem" }
+  /auth/password-recovery:
+    post:
+      tags: [identity]
+      operationId: identity_request_password_recovery
+      summary: Request recovery email (REQ-F-AUTH-08) — identical response whether the email exists
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties: { email: { type: string, format: email } }
+      responses:
+        "202": { description: Always accepted. }
+        "429": { $ref: "#/components/responses/Problem" }
+  /auth/password-recovery/confirm:
+    post:
+      tags: [identity]
+      operationId: identity_confirm_password_recovery
+      summary: Set a new password with the recovery token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [uid, token, new_password]
+              properties:
+                uid: { type: string }
+                token: { type: string }
+                new_password: { type: string, minLength: 10 }
+      responses:
+        "204": { description: Password changed; all sessions revoked. }
+        "400": { $ref: "#/components/responses/ValidationFailed" }
+  /invites/{token}:
+    get:
+      tags: [identity]
+      operationId: identity_get_invite
+      summary: Open an invite (REQ-F-AUTH-02/04)
+      security: []
+      parameters: [{ $ref: "#/components/parameters/InviteToken" }]
+      responses:
+        "200":
+          description: Invite is valid.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InvitePreview" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+  /invites/{token}/accept:
+    post:
+      tags: [identity]
+      operationId: identity_accept_invite
+      summary: Complete onboarding (REQ-F-AUTH-03/04/05/06)
+      security: []
+      parameters: [{ $ref: "#/components/parameters/InviteToken" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/OnboardingInput" }
+      responses:
+        "201":
+          description: Account created and logged in.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TokenPair" }
+        "400": { $ref: "#/components/responses/ValidationFailed" }
+        "409": { $ref: "#/components/responses/Problem" }
+  /me:
+    get:
+      tags: [identity]
+      operationId: identity_get_me
+      summary: My account (REQ-F-ACC-02)
+      responses:
+        "200":
+          description: Account.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Me" }
+        "401": { $ref: "#/components/responses/Problem" }
+    patch:
+      tags: [identity]
+      operationId: identity_update_me
+      summary: Edit name, language, avatar (REQ-F-ACC-01/02/04)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MeInput" }
+      responses:
+        "200":
+          description: Updated.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Me" }
+        "400": { $ref: "#/components/responses/ValidationFailed" }
+        "401": { $ref: "#/components/responses/Problem" }
+  /me/password:
+    post:
+      tags: [identity]
+      operationId: identity_change_password
+      summary: Change password; revokes other sessions (REQ-F-ACC-03)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [current_password, new_password]
+              properties:
+                current_password: { type: string }
+                new_password: { type: string, minLength: 10 }
+      responses:
+        "204": { description: Changed. }
+        "400": { $ref: "#/components/responses/ValidationFailed" }
+        "401": { $ref: "#/components/responses/Problem" }
+
+  # ---------------------------------------------------------------- home
+  /couple:
+    get:
+      tags: [home]
+      operationId: home_get_couple
+      summary: Couple header (REQ-F-HOME-01)
+      responses:
+        "200":
+          description: Header.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Couple" }
+        "401": { $ref: "#/components/responses/Problem" }
+  /home:
+    get:
+      tags: [home]
+      operationId: home_get_dashboard
+      summary: Header + favorites timeline of both partners (REQ-F-HOME-01/02)
+      parameters: [{ $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" }]
+      responses:
+        "200":
+          description: Dashboard.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HomeDashboard" }
+        "401": { $ref: "#/components/responses/Problem" }
+
+  # ---------------------------------------------------------------- cards
+  /cards/today:
+    get:
+      tags: [cards]
+      operationId: cards_list_today
+      summary: Today's cards, or one random past card (REQ-F-CARD-01/02/04)
+      responses:
+        "200":
+          description: Same order for both partners.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TodayCards" }
+        "401": { $ref: "#/components/responses/Problem" }
+  /cards/mine:
+    get:
+      tags: [cards]
+      operationId: cards_list_mine
+      summary: Cards I created (REQ-F-CARD-05)
+      parameters: [{ $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" }]
+      responses:
+        "200":
+          description: Page.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CardPage" }
+        "401": { $ref: "#/components/responses/Problem" }
+  /cards/pending-count:
+    get:
+      tags: [cards]
+      operationId: cards_get_pending_count
+      summary: Counter of the partner's scheduled cards — no content, no dates (REQ-F-CARD-06)
+      responses:
+        "200":
+          description: Counter.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [count]
+                properties: { count: { type: integer, minimum: 0 } }
+        "401": { $ref: "#/components/responses/Problem" }
+  /cards/{card_id}:
+    parameters: [{ $ref: "#/components/parameters/CardId" }]
+    get:
+      tags: [cards]
+      operationId: cards_get_card
+      summary: Card detail (partner's scheduled card → 404, ADR-005 §4)
+      responses:
+        "200": { description: Card., content: { application/json: { schema: { $ref: "#/components/schemas/Card" } } } }
+        "404": { $ref: "#/components/responses/Problem" }
+        "401": { $ref: "#/components/responses/Problem" }
+    put:
+      tags: [cards]
+      operationId: cards_upsert_card
+      summary: Create or edit a scheduled card with a client UUIDv7 (REQ-F-CARD-05/07, REQ-F-SYNC-03)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CardInput" }
+      responses:
+        "200": { description: Updated., content: { application/json: { schema: { $ref: "#/components/schemas/Card" } } } }
+        "201": { description: Created., content: { application/json: { schema: { $ref: "#/components/schemas/Card" } } } }
+        "400": { $ref: "#/components/responses/ValidationFailed" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        "401": { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [cards]
+      operationId: cards_delete_card
+      summary: Delete a scheduled card (REQ-F-CARD-07)
+      responses:
+        "204": { description: Tombstoned. }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        "401": { $ref: "#/components/responses/Problem" }
+
+  # ---------------------------------------------------------------- memories
+  /memories:
+    get:
+      tags: [memories]
+      operationId: memories_list_memories
+      summary: Gallery ordered by memory_date (REQ-F-MEM-01/07)
+      parameters: [{ $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" }]
+      responses:
+        "200": { description: Page., content: { application/json: { schema: { $ref: "#/components/schemas/MemoryPage" } } } }
+        "401": { $ref: "#/components/responses/Problem" }
+  /memories/{memory_id}:
+    parameters: [{ $ref: "#/components/parameters/MemoryId" }]
+    get:
+      tags: [memories]
+      operationId: memories_get_memory
+      summary: Memory detail
+      responses:
+        "200": { description: Memory., content: { application/json: { schema: { $ref: "#/components/schemas/Memory" } } } }
+        "404": { $ref: "#/components/responses/Problem" }
+        "401": { $ref: "#/components/responses/Problem" }
+    put:
+      tags: [memories]
+      operationId: memories_upsert_memory
+      summary: Create or edit own memory (REQ-F-MEM-07/08/10)
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/MemoryInput" } } }
+      responses:
+        "200": { description: Updated., content: { application/json: { schema: { $ref: "#/components/schemas/Memory" } } } }
+        "201": { description: Created., content: { application/json: { schema: { $ref: "#/components/schemas/Memory" } } } }
+        "400": { $ref: "#/components/responses/ValidationFailed" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        "401": { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [memories]
+      operationId: memories_delete_memory
+      summary: Delete own memory (REQ-F-MEM-07)
+      responses:
+        "204": { description: Tombstoned. }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "401": { $ref: "#/components/responses/Problem" }
+  /songs:
+    get:
+      tags: [memories]
+      operationId: memories_list_songs
+      summary: Couple song list (REQ-F-SONG-01)
+      parameters: [{ $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" }]
+      responses:
+        "200": { description: Page., content: { application/json: { schema: { $ref: "#/components/schemas/SongPage" } } } }
+        "401": { $ref: "#/components/responses/Problem" }
+  /songs/{song_id}:
+    parameters: [{ $ref: "#/components/parameters/SongId" }]
+    get:
+      tags: [memories]
+      operationId: memories_get_song
+      summary: Song with related memory IDs (REQ-F-SONG-03/07)
+      responses:
+        "200": { description: Song., content: { application/json: { schema: { $ref: "#/components/schemas/Song" } } } }
+        "404": { $ref: "#/components/responses/Problem" }
+        "401": { $ref: "#/components/responses/Problem" }
+    put:
+      tags: [memories]
+      operationId: memories_upsert_song
+      summary: Create or edit own song (REQ-F-SONG-05/06/08)
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/SongInput" } } }
+      responses:
+        "200": { description: Updated., content: { application/json: { schema: { $ref: "#/components/schemas/Song" } } } }
+        "201": { description: Created., content: { application/json: { schema: { $ref: "#/components/schemas/Song" } } } }
+        "400": { $ref: "#/components/responses/ValidationFailed" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "401": { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [memories]
+      operationId: memories_delete_song
+      summary: Delete own song (REQ-F-SONG-08)
+      responses:
+        "204": { description: Tombstoned; memories keep existing without song. }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "401": { $ref: "#/components/responses/Problem" }
+  /places:
+    get:
+      tags: [memories]
+      operationId: memories_list_places
+      summary: Places with memory counts for the map (REQ-F-PLACE-02)
+      parameters: [{ $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" }]
+      responses:
+        "200": { description: Page., content: { application/json: { schema: { $ref: "#/components/schemas/PlacePage" } } } }
+        "401": { $ref: "#/components/responses/Problem" }
+  /places/{place_id}:
+    parameters: [{ $ref: "#/components/parameters/PlaceId" }]
+    get:
+      tags: [memories]
+      operationId: memories_get_place
+      summary: Place with its memory IDs (REQ-F-PLACE-03)
+      responses:
+        "200": { description: Place., content: { application/json: { schema: { $ref: "#/components/schemas/Place" } } } }
+        "404": { $ref: "#/components/responses/Problem" }
+        "401": { $ref: "#/components/responses/Problem" }
+    put:
+      tags: [memories]
+      operationId: memories_upsert_place
+      summary: Create or edit own place (REQ-F-PLACE-01/05)
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/PlaceInput" } } }
+      responses:
+        "200": { description: Updated., content: { application/json: { schema: { $ref: "#/components/schemas/Place" } } } }
+        "201": { description: Created., content: { application/json: { schema: { $ref: "#/components/schemas/Place" } } } }
+        "400": { $ref: "#/components/responses/ValidationFailed" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "401": { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [memories]
+      operationId: memories_delete_place
+      summary: Delete own place; its memories are unlinked (REQ-F-PLACE-05)
+      responses:
+        "204": { description: Tombstoned. }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "401": { $ref: "#/components/responses/Problem" }
+
+  # ---------------------------------------------------------------- diary
+  /notes:
+    get:
+      tags: [diary]
+      operationId: diary_list_notes
+      summary: Shared notes + my only_me notes (REQ-F-NOTE-02/03)
+      parameters: [{ $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" }]
+      responses:
+        "200": { description: Page., content: { application/json: { schema: { $ref: "#/components/schemas/NotePage" } } } }
+        "401": { $ref: "#/components/responses/Problem" }
+  /notes/{note_id}:
+    parameters: [{ $ref: "#/components/parameters/NoteId" }]
+    get:
+      tags: [diary]
+      operationId: diary_get_note
+      summary: Note reader (partner's only_me → 404)
+      responses:
+        "200": { description: Note., content: { application/json: { schema: { $ref: "#/components/schemas/Note" } } } }
+        "404": { $ref: "#/components/responses/Problem" }
+        "401": { $ref: "#/components/responses/Problem" }
+    put:
+      tags: [diary]
+      operationId: diary_upsert_note
+      summary: Create or edit own note (REQ-F-NOTE-01/02/05)
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/NoteInput" } } }
+      responses:
+        "200": { description: Updated., content: { application/json: { schema: { $ref: "#/components/schemas/Note" } } } }
+        "201": { description: Created., content: { application/json: { schema: { $ref: "#/components/schemas/Note" } } } }
+        "400": { $ref: "#/components/responses/ValidationFailed" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "401": { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [diary]
+      operationId: diary_delete_note
+      summary: Delete own note (REQ-F-NOTE-05)
+      responses:
+        "204": { description: Tombstoned. }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "401": { $ref: "#/components/responses/Problem" }
+
+  # ---------------------------------------------------------------- favorites
+  /favorites:
+    get:
+      tags: [favorites]
+      operationId: favorites_list_mine
+      summary: My favorites, optionally filtered by type (REQ-F-FAV-01/02)
+      parameters:
+        - name: type
+          in: query
+          schema: { $ref: "#/components/schemas/FavoriteItemType" }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses:
+        "200": { description: Page., content: { application/json: { schema: { $ref: "#/components/schemas/FavoritePage" } } } }
+        "401": { $ref: "#/components/responses/Problem" }
+  /favorites/{favorite_id}:
+    parameters: [{ $ref: "#/components/parameters/FavoriteId" }]
+    put:
+      tags: [favorites]
+      operationId: favorites_star_item
+      summary: Star an item (REQ-F-MEM-06, REQ-F-SONG-04, REQ-F-PLACE-04, REQ-F-NOTE-04)
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/FavoriteInput" } } }
+      responses:
+        "201": { description: Starred., content: { application/json: { schema: { $ref: "#/components/schemas/Favorite" } } } }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        "401": { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [favorites]
+      operationId: favorites_unstar_item
+      summary: Remove a favorite (REQ-F-FAV-01)
+      responses:
+        "204": { description: Unstarred. }
+        "404": { $ref: "#/components/responses/Problem" }
+        "401": { $ref: "#/components/responses/Problem" }
+
+  # ---------------------------------------------------------------- media
+  /media/uploads:
+    post:
+      tags: [media]
+      operationId: media_create_upload
+      summary: Reserve quota and get a presigned POST (ADR-007 §2, REQ-F-MEM-10)
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/UploadInput" } } }
+      responses:
+        "201": { description: Presigned POST., content: { application/json: { schema: { $ref: "#/components/schemas/PresignedPost" } } } }
+        "400": { $ref: "#/components/responses/ValidationFailed" }
+        "409": { $ref: "#/components/responses/Problem" }
+        "401": { $ref: "#/components/responses/Problem" }
+  /media/uploads/{media_id}/complete:
+    parameters: [{ $ref: "#/components/parameters/MediaId" }]
+    post:
+      tags: [media]
+      operationId: media_complete_upload
+      summary: Mark upload finished; validation runs in the worker (ADR-007 §3)
+      responses:
+        "202": { description: Validation enqueued., content: { application/json: { schema: { $ref: "#/components/schemas/MediaAsset" } } } }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        "401": { $ref: "#/components/responses/Problem" }
+  /media/urls:
+    post:
+      tags: [media]
+      operationId: media_create_signed_urls
+      summary: Batch of signed GET URLs, 10 min (ADR-007 §5, REQ-N-SEC-06)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [items]
+              properties:
+                items:
+                  type: array
+                  maxItems: 100
+                  items:
+                    type: object
+                    required: [media_id, variant]
+                    properties:
+                      media_id: { $ref: "#/components/schemas/Uuid" }
+                      variant: { type: string, examples: [thumb_400, display_1600, poster_800, original] }
+      responses:
+        "200":
+          description: URLs for visible items; invisible ones are omitted.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [urls]
+                properties:
+                  urls:
+                    type: array
+                    items:
+                      type: object
+                      required: [media_id, variant, url, expires_at]
+                      properties:
+                        media_id: { $ref: "#/components/schemas/Uuid" }
+                        variant: { type: string }
+                        url: { type: string, format: uri }
+                        expires_at: { type: string, format: date-time }
+        "401": { $ref: "#/components/responses/Problem" }
+  /media/{media_id}:
+    parameters: [{ $ref: "#/components/parameters/MediaId" }]
+    get:
+      tags: [media]
+      operationId: media_get_asset
+      summary: Asset status and variants
+      responses:
+        "200": { description: Asset., content: { application/json: { schema: { $ref: "#/components/schemas/MediaAsset" } } } }
+        "404": { $ref: "#/components/responses/Problem" }
+        "401": { $ref: "#/components/responses/Problem" }
+
+  # ---------------------------------------------------------------- notifications
+  /me/notification-preferences:
+    get:
+      tags: [notifications]
+      operationId: notifications_get_preferences
+      summary: Read my notification toggles (REQ-F-ACC-05)
+      responses:
+        "200": { description: Preferences., content: { application/json: { schema: { $ref: "#/components/schemas/NotificationPreferences" } } } }
+        "401": { $ref: "#/components/responses/Problem" }
+    put:
+      tags: [notifications]
+      operationId: notifications_update_preferences
+      summary: Toggle per type (REQ-F-NOTIF-04, REQ-F-ACC-05)
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/NotificationPreferences" } } }
+      responses:
+        "200": { description: Saved., content: { application/json: { schema: { $ref: "#/components/schemas/NotificationPreferences" } } } }
+        "401": { $ref: "#/components/responses/Problem" }
+  /me/devices:
+    post:
+      tags: [notifications]
+      operationId: notifications_register_device
+      summary: Register an Expo token or Web Push subscription (REQ-F-NOTIF-03)
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/DeviceInput" } } }
+      responses:
+        "201": { description: Registered., content: { application/json: { schema: { $ref: "#/components/schemas/Device" } } } }
+        "400": { $ref: "#/components/responses/ValidationFailed" }
+        "401": { $ref: "#/components/responses/Problem" }
+  /me/devices/{device_id}:
+    parameters: [{ $ref: "#/components/parameters/DeviceId" }]
+    delete:
+      tags: [notifications]
+      operationId: notifications_delete_device
+      summary: Unregister a device (REQ-F-NOTIF-03)
+      responses:
+        "204": { description: Removed. }
+        "401": { $ref: "#/components/responses/Problem" }
+
+  # ---------------------------------------------------------------- sync
+  /sync/push:
+    post:
+      tags: [sync]
+      operationId: sync_push_operations
+      summary: Ordered batch of queued mutations (ADR-006 §2)
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/SyncPushInput" } } }
+      responses:
+        "200": { description: One result per op., content: { application/json: { schema: { $ref: "#/components/schemas/SyncPushResult" } } } }
+        "400": { $ref: "#/components/responses/ValidationFailed" }
+        "401": { $ref: "#/components/responses/Problem" }
+  /sync/pull:
+    get:
+      tags: [sync]
+      operationId: sync_pull_changes
+      summary: Changes after a cursor, filtered for this actor (ADR-006 §4)
+      parameters: [{ $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" }]
+      responses:
+        "200": { description: Changes., content: { application/json: { schema: { $ref: "#/components/schemas/SyncPullResult" } } } }
+        "410": { $ref: "#/components/responses/Problem" }
+        "401": { $ref: "#/components/responses/Problem" }
+
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+    refreshCookie: { type: apiKey, in: cookie, name: cl_refresh }
+
+  parameters:
+    RequestId: { name: X-Request-ID, in: header, required: false, schema: { type: string, maxLength: 64 } }
+    ClientHeader: { name: X-CherryLove-Client, in: header, required: false, description: "Required as `web` on cookie-based calls (ADR-004 §2).", schema: { type: string, enum: [web, mobile] } }
+    Cursor: { name: cursor, in: query, required: false, schema: { type: string } }
+    Limit: { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 500, default: 50 } }
+    InviteToken: { name: token, in: path, required: true, schema: { type: string } }
+    CardId: { name: card_id, in: path, required: true, schema: { $ref: "#/components/schemas/Uuid" } }
+    MemoryId: { name: memory_id, in: path, required: true, schema: { $ref: "#/components/schemas/Uuid" } }
+    SongId: { name: song_id, in: path, required: true, schema: { $ref: "#/components/schemas/Uuid" } }
+    PlaceId: { name: place_id, in: path, required: true, schema: { $ref: "#/components/schemas/Uuid" } }
+    NoteId: { name: note_id, in: path, required: true, schema: { $ref: "#/components/schemas/Uuid" } }
+    FavoriteId: { name: favorite_id, in: path, required: true, schema: { $ref: "#/components/schemas/Uuid" } }
+    MediaId: { name: media_id, in: path, required: true, schema: { $ref: "#/components/schemas/Uuid" } }
+    DeviceId: { name: device_id, in: path, required: true, schema: { $ref: "#/components/schemas/Uuid" } }
+
+  responses:
+    Problem:
+      description: RFC 9457 problem (ADR-010).
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    ValidationFailed:
+      description: Invalid input; field errors in `errors` (ADR-010 §1).
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+
+  schemas:
+    Uuid: { type: string, format: uuid, description: "UUIDv7" }
+    CivilDate: { type: string, format: date, description: "YYYY-MM-DD, no time zone (DEC-024)" }
+    Timestamp: { type: string, format: date-time, description: "ISO 8601 UTC with Z" }
+    NextCursor: { type: [string, "null"] }
+    Language: { type: string, enum: [es, en] }
+
+    ErrorCode:
+      type: string
+      description: Stable codes (ADR-010 §2). Plan F narrows them per endpoint.
+      enum:
+        - validation_failed
+        - not_authenticated
+        - token_expired
+        - invalid_credentials
+        - not_author
+        - not_found
+        - card_already_published
+        - quota_exceeded
+        - file_too_large
+        - media_rejected
+        - invite_expired
+        - invite_revoked
+        - email_already_in_couple
+        - couple_full
+        - couple_archived
+        - already_favorited
+        - cursor_expired
+        - entity_deleted
+        - rate_limited
+        - internal_error
+        - service_unavailable
+    Problem:
+      type: object
+      required: [type, title, status, code, request_id]
+      properties:
+        type: { type: string, examples: ["/problems/card-already-published"] }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
+        code: { $ref: "#/components/schemas/ErrorCode" }
+        request_id: { type: string }
+        params: { type: object, additionalProperties: true }
+        errors:
+          type: array
+          items:
+            type: object
+            required: [pointer, code]
+            properties:
+              pointer: { type: string, examples: ["/body"] }
+              code: { type: string, examples: [too_long, required] }
+              params: { type: object, additionalProperties: true }
+
+    # identity
+    LoginInput:
+      type: object
+      required: [email, password, client]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+        client: { type: string, enum: [web, mobile] }
+    RefreshInput:
+      type: object
+      description: Mobile sends the refresh token in the body; web sends nothing (cookie).
+      properties: { refresh: { type: string } }
+    TokenPair:
+      type: object
+      required: [access, access_expires_at]
+      properties:
+        access: { type: string }
+        access_expires_at: { $ref: "#/components/schemas/Timestamp" }
+        refresh: { type: string, description: "Mobile only; never present for web." }
+    InvitePreview:
+      type: object
+      required: [email, relationship_start_known]
+      properties:
+        email: { type: string, format: email }
+        relationship_start_known: { type: boolean, description: "If true, onboarding skips the date (REQ-F-AUTH-04)." }
+    OnboardingInput:
+      type: object
+      required: [name, birth_date, password]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 80 }
+        birth_date: { $ref: "#/components/schemas/CivilDate" }
+        password: { type: string, minLength: 10 }
+        relationship_start: { $ref: "#/components/schemas/CivilDate" }
+        language: { $ref: "#/components/schemas/Language" }
+    PersonSummary:
+      type: object
+      required: [id, name]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        name: { type: string }
+        avatar_media_id: { oneOf: [{ $ref: "#/components/schemas/Uuid" }, { type: "null" }] }
+    Me:
+      type: object
+      required: [id, email, name, language]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        email: { type: string, format: email }
+        name: { type: string }
+        birth_date: { $ref: "#/components/schemas/CivilDate" }
+        language: { $ref: "#/components/schemas/Language" }
+        avatar_media_id: { oneOf: [{ $ref: "#/components/schemas/Uuid" }, { type: "null" }] }
+        partner: { oneOf: [{ $ref: "#/components/schemas/PersonSummary" }, { type: "null" }] }
+    MeInput:
+      type: object
+      description: Birth date is admin-only (DEC-025).
+      properties:
+        name: { type: string, minLength: 1, maxLength: 80 }
+        language: { $ref: "#/components/schemas/Language" }
+        avatar_media_id: { oneOf: [{ $ref: "#/components/schemas/Uuid" }, { type: "null" }] }
+
+    # home
+    Couple:
+      type: object
+      required: [id, partners, timezone, version]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        partners: { type: array, maxItems: 2, items: { $ref: "#/components/schemas/PersonSummary" } }
+        relationship_start: { oneOf: [{ $ref: "#/components/schemas/CivilDate" }, { type: "null" }] }
+        days_together: { type: [integer, "null"], description: "Civil days in couple timezone (DEC-024)" }
+        timezone: { type: string, examples: [America/Bogota] }
+        version: { type: integer }
+    TimelineItem:
+      type: object
+      required: [item_type, item_id, starred_by, starred_at]
+      properties:
+        item_type: { $ref: "#/components/schemas/FavoriteItemType" }
+        item_id: { $ref: "#/components/schemas/Uuid" }
+        starred_by: { type: array, items: { $ref: "#/components/schemas/Uuid" } }
+        starred_at: { $ref: "#/components/schemas/Timestamp" }
+        item_date: { $ref: "#/components/schemas/CivilDate" }
+    HomeDashboard:
+      type: object
+      required: [couple, timeline, next_cursor]
+      properties:
+        couple: { $ref: "#/components/schemas/Couple" }
+        timeline: { type: array, items: { $ref: "#/components/schemas/TimelineItem" } }
+        next_cursor: { $ref: "#/components/schemas/NextCursor" }
+
+    # shared sync fields
+    SyncFields:
+      type: object
+      required: [id, version, created_at, updated_at]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        author_id: { $ref: "#/components/schemas/Uuid" }
+        version: { type: integer }
+        created_at: { $ref: "#/components/schemas/Timestamp" }
+        updated_at: { $ref: "#/components/schemas/Timestamp" }
+
+    # cards
+    CardInput:
+      type: object
+      required: [body, publish_at]
+      properties:
+        body: { type: string, minLength: 1, maxLength: 2000 }
+        publish_at: { $ref: "#/components/schemas/Timestamp" }
+        base_version: { type: integer }
+    Card:
+      allOf:
+        - { $ref: "#/components/schemas/SyncFields" }
+        - type: object
+          required: [body, publish_at]
+          properties:
+            body: { type: string }
+            publish_at: { $ref: "#/components/schemas/Timestamp" }
+            published_at: { oneOf: [{ $ref: "#/components/schemas/Timestamp" }, { type: "null" }] }
+    TodayCards:
+      type: object
+      required: [mode, cards]
+      properties:
+        mode: { type: string, enum: [today, random_past], description: "REQ-F-CARD-01 vs REQ-F-CARD-02" }
+        cards: { type: array, items: { $ref: "#/components/schemas/Card" } }
+    CardPage:
+      type: object
+      required: [results, next_cursor]
+      properties:
+        results: { type: array, items: { $ref: "#/components/schemas/Card" } }
+        next_cursor: { $ref: "#/components/schemas/NextCursor" }
+
+    # memories
+    MemoryInput:
+      type: object
+      required: [memory_date, media_kind]
+      description: Exactly one of media_id / external_url (DATA-001 §4).
+      properties:
+        memory_date: { $ref: "#/components/schemas/CivilDate" }
+        media_kind: { type: string, enum: [photo, video] }
+        media_id: { $ref: "#/components/schemas/Uuid" }
+        external_url: { type: string, format: uri, pattern: "^https://" }
+        description: { type: string, maxLength: 4000 }
+        song_id: { oneOf: [{ $ref: "#/components/schemas/Uuid" }, { type: "null" }] }
+        place_id: { oneOf: [{ $ref: "#/components/schemas/Uuid" }, { type: "null" }] }
+        base_version: { type: integer }
+    Memory:
+      allOf:
+        - { $ref: "#/components/schemas/SyncFields" }
+        - type: object
+          required: [memory_date, media_kind]
+          properties:
+            memory_date: { $ref: "#/components/schemas/CivilDate" }
+            media_kind: { type: string, enum: [photo, video] }
+            media_id: { oneOf: [{ $ref: "#/components/schemas/Uuid" }, { type: "null" }] }
+            external_url: { type: [string, "null"] }
+            description: { type: [string, "null"] }
+            song_id: { oneOf: [{ $ref: "#/components/schemas/Uuid" }, { type: "null" }] }
+            place_id: { oneOf: [{ $ref: "#/components/schemas/Uuid" }, { type: "null" }] }
+    MemoryPage:
+      type: object
+      required: [results, next_cursor]
+      properties:
+        results: { type: array, items: { $ref: "#/components/schemas/Memory" } }
+        next_cursor: { $ref: "#/components/schemas/NextCursor" }
+    SongSource:
+      description: Discriminated union (ADR-007 §6, REQ-F-SONG-05).
+      oneOf:
+        - { $ref: "#/components/schemas/SongSourceUpload" }
+        - { $ref: "#/components/schemas/SongSourceAudioUrl" }
+        - { $ref: "#/components/schemas/SongSourceSpotify" }
+        - { $ref: "#/components/schemas/SongSourceYoutube" }
+      discriminator:
+        propertyName: type
+        mapping:
+          upload: "#/components/schemas/SongSourceUpload"
+          audio_url: "#/components/schemas/SongSourceAudioUrl"
+          spotify: "#/components/schemas/SongSourceSpotify"
+          youtube: "#/components/schemas/SongSourceYoutube"
+    SongSourceUpload:
+      type: object
+      required: [type, media_id]
+      properties: { type: { const: upload }, media_id: { $ref: "#/components/schemas/Uuid" } }
+    SongSourceAudioUrl:
+      type: object
+      required: [type, url]
+      properties: { type: { const: audio_url }, url: { type: string, format: uri, pattern: "^https://" } }
+    SongSourceSpotify:
+      type: object
+      required: [type, provider_ref]
+      properties: { type: { const: spotify }, provider_ref: { type: string, description: "Track or playlist ID" } }
+    SongSourceYoutube:
+      type: object
+      required: [type, provider_ref]
+      properties: { type: { const: youtube }, provider_ref: { type: string, description: "Video ID" } }
+    SongInput:
+      type: object
+      required: [title, source]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 120 }
+        source: { $ref: "#/components/schemas/SongSource" }
+        note: { type: string, maxLength: 4000 }
+        memory_ids: { type: array, items: { $ref: "#/components/schemas/Uuid" }, description: "Sets memory.song_id on own memories (REQ-F-SONG-07)" }
+        base_version: { type: integer }
+    Song:
+      allOf:
+        - { $ref: "#/components/schemas/SyncFields" }
+        - type: object
+          required: [title, source, memory_ids]
+          properties:
+            title: { type: string }
+            source: { $ref: "#/components/schemas/SongSource" }
+            note: { type: [string, "null"] }
+            memory_ids: { type: array, items: { $ref: "#/components/schemas/Uuid" } }
+    SongPage:
+      type: object
+      required: [results, next_cursor]
+      properties:
+        results: { type: array, items: { $ref: "#/components/schemas/Song" } }
+        next_cursor: { $ref: "#/components/schemas/NextCursor" }
+    PlaceInput:
+      type: object
+      required: [name, latitude, longitude]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+        latitude: { type: number, minimum: -90, maximum: 90 }
+        longitude: { type: number, minimum: -180, maximum: 180 }
+        description: { type: string, maxLength: 4000 }
+        base_version: { type: integer }
+    Place:
+      allOf:
+        - { $ref: "#/components/schemas/SyncFields" }
+        - type: object
+          required: [name, latitude, longitude, memory_count]
+          properties:
+            name: { type: string }
+            latitude: { type: number }
+            longitude: { type: number }
+            description: { type: [string, "null"] }
+            memory_count: { type: integer, minimum: 0 }
+            memory_ids: { type: array, items: { $ref: "#/components/schemas/Uuid" }, description: "Detail only" }
+    PlacePage:
+      type: object
+      required: [results, next_cursor]
+      properties:
+        results: { type: array, items: { $ref: "#/components/schemas/Place" } }
+        next_cursor: { $ref: "#/components/schemas/NextCursor" }
+
+    # diary
+    NoteInput:
+      type: object
+      required: [body]
+      properties:
+        body: { type: string, minLength: 1, maxLength: 10000 }
+        visibility: { type: string, enum: [shared, only_me], default: shared }
+        base_version: { type: integer }
+    Note:
+      allOf:
+        - { $ref: "#/components/schemas/SyncFields" }
+        - type: object
+          required: [body, visibility]
+          properties:
+            body: { type: string }
+            visibility: { type: string, enum: [shared, only_me] }
+    NotePage:
+      type: object
+      required: [results, next_cursor]
+      properties:
+        results: { type: array, items: { $ref: "#/components/schemas/Note" } }
+        next_cursor: { $ref: "#/components/schemas/NextCursor" }
+
+    # favorites
+    FavoriteItemType: { type: string, enum: [memory, song, place, note] }
+    FavoriteInput:
+      type: object
+      required: [item_type, item_id]
+      properties:
+        item_type: { $ref: "#/components/schemas/FavoriteItemType" }
+        item_id: { $ref: "#/components/schemas/Uuid" }
+    Favorite:
+      type: object
+      required: [id, item_type, item_id, user_id, created_at]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        item_type: { $ref: "#/components/schemas/FavoriteItemType" }
+        item_id: { $ref: "#/components/schemas/Uuid" }
+        user_id: { $ref: "#/components/schemas/Uuid" }
+        item_date: { $ref: "#/components/schemas/CivilDate" }
+        created_at: { $ref: "#/components/schemas/Timestamp" }
+    FavoritePage:
+      type: object
+      required: [results, next_cursor]
+      properties:
+        results: { type: array, items: { $ref: "#/components/schemas/Favorite" } }
+        next_cursor: { $ref: "#/components/schemas/NextCursor" }
+
+    # media
+    UploadInput:
+      type: object
+      required: [media_id, kind, content_type, size_bytes]
+      properties:
+        media_id: { $ref: "#/components/schemas/Uuid" }
+        kind: { type: string, enum: [photo, video, audio, avatar] }
+        content_type: { type: string, enum: [image/jpeg, image/png, image/webp, video/mp4, video/quicktime, audio/mpeg, audio/mp4] }
+        size_bytes: { type: integer, minimum: 1 }
+    PresignedPost:
+      type: object
+      required: [url, fields, expires_at]
+      properties:
+        url: { type: string, format: uri }
+        fields: { type: object, additionalProperties: { type: string } }
+        expires_at: { $ref: "#/components/schemas/Timestamp" }
+    MediaAsset:
+      type: object
+      required: [id, kind, status]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        kind: { type: string, enum: [photo, video, audio, avatar] }
+        status: { type: string, enum: [pending, ready, rejected, deleted] }
+        variants: { type: array, items: { type: string } }
+        rejection_code: { type: [string, "null"] }
+
+    # notifications
+    NotificationPreferences:
+      type: object
+      required: [card_published, anniversary, partner_birthday]
+      properties:
+        card_published: { type: boolean }
+        anniversary: { type: boolean }
+        partner_birthday: { type: boolean }
+    DeviceInput:
+      oneOf:
+        - { $ref: "#/components/schemas/DeviceInputExpo" }
+        - { $ref: "#/components/schemas/DeviceInputWebPush" }
+      discriminator:
+        propertyName: channel
+        mapping:
+          expo: "#/components/schemas/DeviceInputExpo"
+          webpush: "#/components/schemas/DeviceInputWebPush"
+    DeviceInputExpo:
+      type: object
+      required: [channel, expo_token]
+      properties: { channel: { const: expo }, expo_token: { type: string } }
+    DeviceInputWebPush:
+      type: object
+      required: [channel, subscription]
+      properties:
+        channel: { const: webpush }
+        subscription:
+          type: object
+          required: [endpoint, keys]
+          properties:
+            endpoint: { type: string, format: uri }
+            keys:
+              type: object
+              required: [p256dh, auth]
+              properties: { p256dh: { type: string }, auth: { type: string } }
+    Device:
+      type: object
+      required: [id, channel]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        channel: { type: string, enum: [expo, webpush] }
+
+    # sync
+    SyncEntityType: { type: string, enum: [card, memory, song, place, note, favorite, couple] }
+    SyncOperation:
+      type: object
+      required: [client_op_id, entity_type, entity_id, op]
+      properties:
+        client_op_id: { $ref: "#/components/schemas/Uuid" }
+        entity_type: { $ref: "#/components/schemas/SyncEntityType" }
+        entity_id: { $ref: "#/components/schemas/Uuid" }
+        op: { type: string, enum: [upsert, delete] }
+        base_version: { type: integer }
+        payload: { type: object, additionalProperties: true, description: "Same shape as the entity's *Input schema" }
+    SyncPushInput:
+      type: object
+      required: [operations]
+      properties:
+        operations: { type: array, minItems: 1, maxItems: 100, items: { $ref: "#/components/schemas/SyncOperation" } }
+    SyncOpResult:
+      type: object
+      required: [client_op_id, result]
+      properties:
+        client_op_id: { $ref: "#/components/schemas/Uuid" }
+        result: { type: string, enum: [applied, rejected, gone] }
+        version: { type: integer }
+        overwrote_newer: { type: boolean }
+        problem: { $ref: "#/components/schemas/Problem" }
+    SyncPushResult:
+      type: object
+      required: [results]
+      properties:
+        results: { type: array, items: { $ref: "#/components/schemas/SyncOpResult" } }
+    SyncChange:
+      type: object
+      required: [entity_type, entity_id, op]
+      properties:
+        entity_type: { $ref: "#/components/schemas/SyncEntityType" }
+        entity_id: { $ref: "#/components/schemas/Uuid" }
+        op: { type: string, enum: [upsert, delete] }
+        record: { type: object, additionalProperties: true, description: "Entity representation; present when op = upsert" }
+    SyncPullResult:
+      type: object
+      required: [changes, next_cursor, pending_card_count]
+      properties:
+        changes: { type: array, items: { $ref: "#/components/schemas/SyncChange" } }
+        next_cursor: { $ref: "#/components/schemas/NextCursor" }
+        pending_card_count: { type: integer, minimum: 0, description: "REQ-F-CARD-06" }
