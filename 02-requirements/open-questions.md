@@ -1,8 +1,8 @@
 ---
 id: REQ-DOC-004
-status: in_review
-approved_by: null
-approved_at: null
+status: approved
+approved_by: Camilo
+approved_at: 2026-11-11
 ---
 
 # Open questions

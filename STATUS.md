@@ -20,10 +20,10 @@ Control board for human approval. Nothing below `approved` is a decision.
 | GOV-004 | `00-governance/session-prompts/` | in_review | | |
 | GLO-001 | `glossary.md` | in_review | | |
 | AN-001 | `01-analysis/product-brief.md` | in_review | | |
-| REQ-DOC-001 | `02-requirements/functional.md` | in_review | | |
-| REQ-DOC-002 | `02-requirements/nfr.md` | in_review | | |
-| REQ-DOC-003 | `02-requirements/roles-actuators.md` | in_review | | |
-| REQ-DOC-004 | `02-requirements/open-questions.md` | in_review (0 open) | | |
+| REQ-DOC-001 | `02-requirements/functional.md` | **approved** (frozen) | Camilo | 2026-11-11 |
+| REQ-DOC-002 | `02-requirements/nfr.md` | **approved** (frozen) | Camilo | 2026-11-11 |
+| REQ-DOC-003 | `02-requirements/roles-actuators.md` | **approved** (frozen) | Camilo | 2026-11-11 |
+| REQ-DOC-004 | `02-requirements/open-questions.md` | **approved** (0 open) | Camilo | 2026-11-11 |
 | UX-001 | `03-ux-ui/` | not_started | | |
 | ADR-* | `04-architecture/` | not_started | | |
 | LEARN-001 | `05-learning/` | not_started | | |
@@ -34,20 +34,20 @@ Control board for human approval. Nothing below `approved` is a decision.
 
 ## Frozen decisions
 
-34 decisions approved → `00-governance/decision-log.md` (DEC-001…DEC-034).
+35 decisions approved → `00-governance/decision-log.md` (DEC-001…DEC-035).
+Requirements frozen on 2026-11-11 (DEC-035). Sessions B, C, D, E are unblocked.
 
 ## Blocked on you
 
-1. **Requirements freeze** — reply `freeze` (or patches by ID) for REQ-DOC-001…004.
-2. Approve GOV-001, GOV-002, GOV-004, GLO-001, AN-001, AGENT-001.
-3. Connect GitHub (needed by session R).
+1. Approve GOV-001, GOV-002, GOV-004, GLO-001, AN-001, AGENT-001.
+2. Connect GitHub (needed by session R).
 
 ## Checklist for freeze
 
 - [ ] Approval protocol accepted
 - [ ] Glossary accepted
-- [ ] Roles and actuators accepted
-- [ ] Functional catalog accepted or patched by ID
-- [ ] NFR catalog accepted or patched by ID
+- [x] Roles and actuators accepted
+- [x] Functional catalog accepted or patched by ID
+- [x] NFR catalog accepted or patched by ID
 - [x] OQ-001 answered (DEC-034)
 - [ ] Agent/skill proposal accepted as a later session (E), not authored now

@@ -1,14 +1,14 @@
 ---
 id: REQ-DOC-002
-status: in_review
-approved_by: null
-approved_at: null
+status: approved
+approved_by: Camilo
+approved_at: 2026-11-11
 supersedes: nfr.md draft v0 (REQ-N-010…REQ-MED-002)
 ---
 
 # Non-functional requirements
 
-ID scheme: `REQ-N-<AREA>-<NN>`. Sources: `you` (proposal), `DEC-*` (decision log), `—` (senior recommendation, needs freeze).
+ID scheme: `REQ-N-<AREA>-<NN>`. Sources: `you` (proposal), `DEC-*` (decision log), `—` (senior recommendation, accepted at freeze, DEC-035). IDs are frozen and immutable.
 
 ## ARC — Architecture
 

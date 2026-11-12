@@ -1,14 +1,14 @@
 ---
 id: REQ-DOC-001
-status: in_review
-approved_by: null
-approved_at: null
+status: approved
+approved_by: Camilo
+approved_at: 2026-11-11
 supersedes: functional.md draft v0 (REQ-F-001…REQ-ADM-005)
 ---
 
 # Functional requirements
 
-Every ID below is pending the **requirements freeze**. Product rules behind each ID were already approved
+Every ID below is **frozen** (DEC-035, 2026-11-11) and immutable; changes need a new ID. Product rules behind each ID were already approved
 one by one on 2026-11-09 and are logged in `00-governance/decision-log.md` (DEC-*).
 
 ## Quick path
@@ -97,7 +97,7 @@ one by one on 2026-11-09 and are logged in `00-governance/decision-log.md` (DEC-
 | REQ-F-PLACE-02 | Module home = dashboard: OpenStreetMap map + list of places with memory counts. | you, DEC-013 |
 | REQ-F-PLACE-03 | Clicking a place opens its detail: memories with photos, story, date, song. | you |
 | REQ-F-PLACE-04 | Star on the viewer favorites the **place**. | you |
-| REQ-F-PLACE-05 | Edit/delete own only; deleting a place unlinks (does not delete) its memories. | — (needs freeze) |
+| REQ-F-PLACE-05 | Edit/delete own only; deleting a place unlinks (does not delete) its memories. | — (DEC-035) |
 
 ## NOTE — Love diary
 
@@ -114,7 +114,7 @@ one by one on 2026-11-09 and are logged in `00-governance/decision-log.md` (DEC-
 | ID | Statement | Source |
 |----|-----------|--------|
 | REQ-F-FAV-01 | Personal unified list: memories (grouped by date), songs, places, notes. | you, DEC-011 |
-| REQ-F-FAV-02 | Filter by type. | — (needs freeze) |
+| REQ-F-FAV-02 | Filter by type. | — (DEC-035) |
 | REQ-F-FAV-03 | Click opens the item's detail in its module. | you |
 | REQ-F-FAV-04 | If an item is deleted or becomes `only_me`, it disappears from the partner's favorites. | DEC-014 |
 
@@ -145,14 +145,14 @@ one by one on 2026-11-09 and are logged in `00-governance/decision-log.md` (DEC-
 |----|-----------|--------|
 | REQ-F-SYNC-01 | Read offline whatever was already downloaded. | you |
 | REQ-F-SYNC-02 | Create/edit/delete offline → persistent local queue → replay when online. | you |
-| REQ-F-SYNC-03 | Entity IDs are generated on the client (UUIDv7). | — (needs freeze) |
+| REQ-F-SYNC-03 | Entity IDs are generated on the client (UUIDv7). | — (DEC-035) |
 | REQ-F-SYNC-04 | Every queued mutation carries a `client_op_id`; the server stores it so replays are idempotent. | v0 REQ-SYNC-001 |
-| REQ-F-SYNC-05 | Conflict rule: last-write-wins per record using a server `version` (only authors write); deletes travel as tombstones (soft delete). | — (needs freeze) |
-| REQ-F-SYNC-06 | Incremental pull by cursor (`since`), never full downloads. | — (needs freeze) |
+| REQ-F-SYNC-05 | Conflict rule: last-write-wins per record using a server `version` (only authors write); deletes travel as tombstones (soft delete). | — (DEC-035) |
+| REQ-F-SYNC-06 | Incremental pull by cursor (`since`), never full downloads. | — (DEC-035) |
 | REQ-F-SYNC-07 | Media uploads use a separate queue with retries and quota validation. | DEC-009, DEC-020 |
-| REQ-F-SYNC-08 | Visible state: offline, pending, synced. | — (needs freeze) |
+| REQ-F-SYNC-08 | Visible state: offline, pending, synced. | — (DEC-035) |
 | REQ-F-SYNC-09 | Local store: mobile = SQLite; web = IndexedDB. One sync engine in `cherrylove-core`. | you, DEC-003 |
-| REQ-F-SYNC-10 | Server rules win (published card lock, quota, permissions); the client shows the rejection clearly. | — (needs freeze) |
+| REQ-F-SYNC-10 | Server rules win (published card lock, quota, permissions); the client shows the rejection clearly. | — (DEC-035) |
 
 ## ADM — Administration (customized Django Admin + custom views)
 
@@ -175,8 +175,8 @@ one by one on 2026-11-09 and are logged in `00-governance/decision-log.md` (DEC-
 |----|-----------|--------|
 | REQ-F-LOG-01 | Log every action: create, update, delete, view, login, logout, auth failure, admin action, sync. | you |
 | REQ-F-LOG-02 | Each event stores actor, couple, action, entity type + id, timestamp, IP/device, `request_id`, and a field diff **without sensitive content**. | you, DEC-015 |
-| REQ-F-LOG-03 | Append-only. | — (needs freeze) |
-| REQ-F-LOG-04 | Partitioned by month with configurable retention. | — (needs freeze) |
+| REQ-F-LOG-03 | Append-only. | — (DEC-035) |
+| REQ-F-LOG-04 | Partitioned by month with configurable retention. | — (DEC-035) |
 
 ## Backlog (not v1; seams only)
 

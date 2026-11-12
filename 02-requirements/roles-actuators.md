@@ -1,8 +1,8 @@
 ---
 id: REQ-DOC-003
-status: in_review
-approved_by: null
-approved_at: null
+status: approved
+approved_by: Camilo
+approved_at: 2026-11-11
 supersedes: roles-actuators.md draft v0
 ---
 
