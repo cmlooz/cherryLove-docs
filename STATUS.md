@@ -38,6 +38,7 @@ Control board for human approval. Nothing below `approved` is a decision.
 | ADR-010 | `04-architecture/adr-010-error-handling.md` | **approved** | Camilo | 2026-11-11 |
 | ADR-011 | `04-architecture/adr-011-caching.md` | **approved** | Camilo | 2026-11-12 |
 | ADR-012 | `04-architecture/adr-012-i18n.md` | **approved** | Camilo | 2026-11-12 |
+| ADR-013 | `04-architecture/adr-013-notifications-jobs.md` | **approved** | Camilo | 2026-11-12 |
 | ADR-* | `04-architecture/` (index in README) | not_started | | |
 | LEARN-001 | `05-learning/` | not_started | | |
 | IMPL-* | `06-implementation/` | not_started | | |
@@ -47,7 +48,7 @@ Control board for human approval. Nothing below `approved` is a decision.
 
 ## Frozen decisions
 
-35 decisions approved → `00-governance/decision-log.md` (DEC-001…DEC-035).
+36 decisions approved → `00-governance/decision-log.md` (DEC-001…DEC-036).
 Requirements frozen on 2026-11-11 (DEC-035). Sessions B, C, D, E are unblocked.
 
 ## Blocked on you

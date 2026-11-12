@@ -24,7 +24,7 @@ Format: MADR (context → options → decision → consequences → REQ IDs).
 | ADR-010 | Error handling (RFC 9457) | `adr-010-error-handling.md` | **approved** |
 | ADR-011 | Caching | `adr-011-caching.md` | **approved** |
 | ADR-012 | i18n | `adr-012-i18n.md` | **approved** |
-| ADR-013 | Notifications and background jobs | — | not_started |
+| ADR-013 | Notifications and background jobs | `adr-013-notifications-jobs.md` | **approved** |
 | ADR-014 | Testing strategy | — | not_started |
 | ADR-015 | CI | — | not_started |
 | DATA-001 | Data model (ERD, indexes, constraints) | — | not_started |
