@@ -11,9 +11,13 @@ All v0 questions were answered on 2026-11-09. Decisions live in `00-governance/d
 
 ## Still open (blocks freeze)
 
-| ID | Question | Recommendation |
-|----|----------|----------------|
-| OQ-001 | REQ-N-PERF-03 asks for "large record counts", but the load-data generator went to the backlog (DEC-027). Without it the requirement is not verifiable. | Move the generator into v1 with a **1 M-row** seed per hot table. Small effort; it is the performance lesson itself. |
+None.
+
+## Resolved open questions
+
+| ID | Resolved by | Outcome |
+|----|-------------|---------|
+| OQ-001 | DEC-034, REQ-N-PERF-06 | Load-data generator in v1 with a 1 M-row seed per hot table (2026-11-11). |
 
 ## Resolved v0 questions
 

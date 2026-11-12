@@ -51,3 +51,9 @@ Append-only. Each row was answered explicitly by Camilo. Changing a decision = n
 |----|-------|----------|
 | DEC-032 | Git identity | `cmlooz <84087705+cmlooz@users.noreply.github.com>` (GitHub noreply). |
 | DEC-033 | Code repos timing | Code repos are created after the requirements freeze and architecture ADRs (session R). |
+
+## 2026-11-11 — Session A (requirements freeze)
+
+| ID | Topic | Decision |
+|----|-------|----------|
+| DEC-034 | Load-data generator (OQ-001) | In v1: seed of **1 M rows** per hot table to verify REQ-N-PERF-03. Supersedes the "load generator" item of DEC-027; the rest of DEC-027 stays in backlog. |

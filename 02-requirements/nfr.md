@@ -45,9 +45,10 @@ ID scheme: `REQ-N-<AREA>-<NN>`. Sources: `you` (proposal), `DEC-*` (decision log
 |----|-----------|--------|
 | REQ-N-PERF-01 | p95 < 200 ms on read endpoints without media. | you |
 | REQ-N-PERF-02 | Cursor pagination on every list; N+1 queries forbidden and checked in tests. | you |
-| REQ-N-PERF-03 | Composite indexes `(couple_id, <date>)`; queries verified with `EXPLAIN ANALYZE`. Data volume for the check: **OQ-001**. | you |
+| REQ-N-PERF-03 | Composite indexes `(couple_id, <date>)`; queries verified with `EXPLAIN ANALYZE`. Data volume for the check: 1 M rows per hot table (REQ-N-PERF-06). | you, DEC-034 |
 | REQ-N-PERF-04 | Redis cache for today's card and home dashboard. | — |
 | REQ-N-PERF-05 | Thumbnails, optimized formats, lazy loading in the gallery. | — |
+| REQ-N-PERF-06 | Load-data generator seeds 1 M rows per hot table for local performance checks. | DEC-034 |
 
 ## QA — Quality and traceability
 

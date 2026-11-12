@@ -181,7 +181,7 @@ one by one on 2026-11-09 and are logged in `00-governance/decision-log.md` (DEC-
 ## Backlog (not v1; seams only)
 
 Export "our book" (PDF/ZIP), dark mode "Black Cherry", OpenTelemetry, feature flags, extra couple modules,
-microservices/extra APIs. Load-data generator: see `open-questions.md` OQ-001. (DEC-027)
+microservices/extra APIs. (DEC-027) The load-data generator moved to v1 (DEC-034, REQ-N-PERF-06).
 
 ## Next step
 

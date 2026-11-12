@@ -23,7 +23,7 @@ Control board for human approval. Nothing below `approved` is a decision.
 | REQ-DOC-001 | `02-requirements/functional.md` | in_review | | |
 | REQ-DOC-002 | `02-requirements/nfr.md` | in_review | | |
 | REQ-DOC-003 | `02-requirements/roles-actuators.md` | in_review | | |
-| REQ-DOC-004 | `02-requirements/open-questions.md` | in_review (1 open: OQ-001) | | |
+| REQ-DOC-004 | `02-requirements/open-questions.md` | in_review (0 open) | | |
 | UX-001 | `03-ux-ui/` | not_started | | |
 | ADR-* | `04-architecture/` | not_started | | |
 | LEARN-001 | `05-learning/` | not_started | | |
@@ -34,14 +34,13 @@ Control board for human approval. Nothing below `approved` is a decision.
 
 ## Frozen decisions
 
-33 decisions approved → `00-governance/decision-log.md` (DEC-001…DEC-033).
+34 decisions approved → `00-governance/decision-log.md` (DEC-001…DEC-034).
 
 ## Blocked on you
 
-1. **OQ-001** — load-data generator in v1 or not.
-2. **Requirements freeze** — reply `freeze` (or patches by ID) for REQ-DOC-001…004.
-3. Approve GOV-001, GOV-002, GOV-004, GLO-001, AN-001, AGENT-001.
-4. Connect GitHub (needed by session R).
+1. **Requirements freeze** — reply `freeze` (or patches by ID) for REQ-DOC-001…004.
+2. Approve GOV-001, GOV-002, GOV-004, GLO-001, AN-001, AGENT-001.
+3. Connect GitHub (needed by session R).
 
 ## Checklist for freeze
 
@@ -50,5 +49,5 @@ Control board for human approval. Nothing below `approved` is a decision.
 - [ ] Roles and actuators accepted
 - [ ] Functional catalog accepted or patched by ID
 - [ ] NFR catalog accepted or patched by ID
-- [ ] OQ-001 answered
+- [x] OQ-001 answered (DEC-034)
 - [ ] Agent/skill proposal accepted as a later session (E), not authored now
