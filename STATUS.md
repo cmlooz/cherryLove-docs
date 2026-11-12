@@ -37,6 +37,7 @@ Control board for human approval. Nothing below `approved` is a decision.
 | ADR-009 | `04-architecture/adr-009-encryption-at-rest.md` | **approved** | Camilo | 2026-11-11 |
 | ADR-010 | `04-architecture/adr-010-error-handling.md` | **approved** | Camilo | 2026-11-11 |
 | ADR-011 | `04-architecture/adr-011-caching.md` | **approved** | Camilo | 2026-11-12 |
+| ADR-012 | `04-architecture/adr-012-i18n.md` | **approved** | Camilo | 2026-11-12 |
 | ADR-* | `04-architecture/` (index in README) | not_started | | |
 | LEARN-001 | `05-learning/` | not_started | | |
 | IMPL-* | `06-implementation/` | not_started | | |
