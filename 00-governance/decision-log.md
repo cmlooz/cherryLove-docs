@@ -58,3 +58,9 @@ Append-only. Each row was answered explicitly by Camilo. Changing a decision = n
 |----|-------|----------|
 | DEC-034 | Load-data generator (OQ-001) | In v1: seed of **1 M rows** per hot table to verify REQ-N-PERF-03. Supersedes the "load generator" item of DEC-027; the rest of DEC-027 stays in backlog. |
 | DEC-035 | Requirements freeze | REQ-DOC-001…004 approved as-is. All REQ-F-* / REQ-N-* IDs are immutable; rows sourced `—` (senior recommendation) are accepted. Changes need a new ID. |
+
+## 2026-11-12 — Session C (architecture)
+
+| ID | Topic | Decision |
+|----|-------|----------|
+| DEC-036 | Anniversary reminder cadence (OQ-003) | **Yearly** anniversary from relationship start in v1. A monthly reminder would need a new REQ ID. |

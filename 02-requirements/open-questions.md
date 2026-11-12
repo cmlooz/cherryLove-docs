@@ -24,6 +24,7 @@ None.
 | ID | Resolved by | Outcome |
 |----|-------------|---------|
 | OQ-001 | DEC-034, REQ-N-PERF-06 | Load-data generator in v1 with a 1 M-row seed per hot table (2026-11-11). |
+| OQ-003 | DEC-036 | Anniversary reminder is yearly in v1 (2026-11-12). |
 
 ## Resolved v0 questions
 
