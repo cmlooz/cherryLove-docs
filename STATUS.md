@@ -57,10 +57,26 @@ Control board for human approval. Nothing below `approved` is a decision.
 Requirements frozen on 2026-11-11 (DEC-035). Sessions B, C, D, E are unblocked.
 Architecture (session C) approved on 2026-11-12: C4-001, ADR-001…016, DATA-001, API-001. Sessions F, H2, R are unblocked; G and H also need B.
 
+## Repositories (session R, 2026-11-12)
+
+All public for now (DEC-039), owner `cmlooz`, default branch `main`, rebase merge only, `main` protected.
+
+| Repo | URL | Content |
+|------|-----|---------|
+| `cherryLove-docs` | https://github.com/cmlooz/cherryLove-docs | this repo |
+| `cherrylove-api` | https://github.com/cmlooz/cherrylove-api | bootstrap files only |
+| `cherrylove-core` | https://github.com/cmlooz/cherrylove-core | bootstrap files only |
+| `cherrylove-web` | https://github.com/cmlooz/cherrylove-web | bootstrap files only |
+| `cherrylove-mobile` | https://github.com/cmlooz/cherrylove-mobile | bootstrap files only |
+
+The required `ci` status check is added in the PR that introduces each repo's CI workflow (ADR-015).
+The older empty repo `cmlooz/CherryLove` is not part of DEC-004 and was left untouched.
+
 ## Blocked on you
 
 1. Approve GOV-001, GOV-002, GOV-004, GLO-001, AN-001, AGENT-001.
-2. Connect GitHub (needed by session R).
+2. Answer OQ-002 (staff 2FA).
+3. Choose a LICENSE for the public repos (none yet = all rights reserved).
 
 ## Checklist for freeze
 
