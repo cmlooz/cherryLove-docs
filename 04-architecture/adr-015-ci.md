@@ -3,12 +3,12 @@ id: ADR-015
 status: approved
 approved_by: Camilo
 approved_at: 2026-11-12
-amended_by: DEC-038 (§2 on GitHub Free)
+amended_by: DEC-038 (§2 on GitHub Free), superseded by DEC-039 (public repos)
 ---
 
-> **Note (DEC-038, 2026-11-12):** on GitHub Free, private repos cannot have branch protection. §2 is enforced by
-> the rebase-only repo setting, a versioned `pre-push` hook that rejects pushes to `main`, and the rule that no
-> agent pushes to `main`. The `ci` check still runs on every PR but cannot block a merge server-side.
+> **Note (DEC-039, 2026-11-12):** repos are public for now, so §2 branch protection works on GitHub Free as
+> written. DEC-038 (hook-only enforcement for private repos) is superseded and kept for history. The versioned
+> `pre-push` hook stays as a cheap second barrier.
 
 # ADR-015 — Continuous integration
 
