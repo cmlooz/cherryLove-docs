@@ -21,7 +21,7 @@ Format: MADR (context → options → decision → consequences → REQ IDs).
 | ADR-007 | Media storage (S3/MinIO, signed URLs, quotas) | `adr-007-media-storage.md` | **approved** |
 | ADR-008 | Audit log and partitioning | `adr-008-audit-log.md` | **approved** |
 | ADR-009 | Encryption at rest | `adr-009-encryption-at-rest.md` | **approved** |
-| ADR-010 | Error handling (RFC 9457) | — | not_started |
+| ADR-010 | Error handling (RFC 9457) | `adr-010-error-handling.md` | **approved** |
 | ADR-011 | Caching | — | not_started |
 | ADR-012 | i18n | — | not_started |
 | ADR-013 | Notifications and background jobs | — | not_started |

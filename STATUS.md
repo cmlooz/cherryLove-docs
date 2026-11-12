@@ -35,6 +35,7 @@ Control board for human approval. Nothing below `approved` is a decision.
 | ADR-007 | `04-architecture/adr-007-media-storage.md` | **approved** | Camilo | 2026-11-11 |
 | ADR-008 | `04-architecture/adr-008-audit-log.md` | **approved** | Camilo | 2026-11-11 |
 | ADR-009 | `04-architecture/adr-009-encryption-at-rest.md` | **approved** | Camilo | 2026-11-11 |
+| ADR-010 | `04-architecture/adr-010-error-handling.md` | **approved** | Camilo | 2026-11-11 |
 | ADR-* | `04-architecture/` (index in README) | not_started | | |
 | LEARN-001 | `05-learning/` | not_started | | |
 | IMPL-* | `06-implementation/` | not_started | | |
