@@ -23,7 +23,7 @@ Approval states per phase: `draft` → `in_review` → `approved`. Only an appro
 
 | Phase | Name | Status |
 |-------|------|--------|
-| F0 | Foundations (spike, toolchain, stack, CI) | draft |
+| F0 | Foundations (spike, toolchain, stack, CI) | **approved** (Camilo, 2026-11-12) |
 | F1 | Shared kernel | draft |
 | F2 | Identity (membership, invites, auth) | draft |
 | F3 | Cards | draft |
