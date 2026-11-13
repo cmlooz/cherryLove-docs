@@ -34,7 +34,7 @@ None.
 | OQ-004 | DEC-037 | MinIO dropped; local S3-compatible server chosen by a plan F spike with a presigned-POST acceptance test (2026-11-12). |
 | OQ-011 | DEC-041 | Core pins API-001 from `cmlooz/cherryLove-docs` at a commit SHA with its sha256, and switches to the first `contract-v1.*` asset when plan F publishes it (raised as OQ-H2-1 by IMPL-CORE-001, 2026-11-13). |
 | OQ-012 | DEC-042 | `0.y.z` while building; from `1.0.0`: core major = contract major, contract additive or core feature → minor, fix → patch; core-only breaking changes inside v1 go through deprecation (raised as OQ-H2-2 by IMPL-CORE-001, 2026-11-13). |
-| OQ-013 | DEC-043 | Core dev dependencies `@vitest/coverage-v8` 5.1.0 and `vite` 8.3.8; ADR-016 patch pending (raised as OQ-H2-3 by IMPL-CORE-001, 2026-11-13). |
+| OQ-013 | DEC-043 | Core dev dependencies `@vitest/coverage-v8` 5.1.0 and `vite` 8.3.8; ADR-016 §4 amended (raised as OQ-H2-3 by IMPL-CORE-001, 2026-11-13). |
 | OQ-014 | DEC-044 | Plan F publishes the contract asset also as JSON (F0.12); core reads it with `JSON.parse`, no dependency (raised as OQ-H2-4 by IMPL-CORE-001, 2026-11-13). |
 | OQ-015 | DEC-045 | On 410 `cursor_expired`, entities and cursor are wiped; the outbox is kept and replayed after the full resync (interpretation of ADR-006 §4, REQ-F-SYNC-02) (raised as OQ-H2-5 by IMPL-CORE-001, 2026-11-13). |
 | OQ-016 | DEC-046 | Plan F adds an additive `FieldErrorCode` enum to the contract (F0.8); core checks `validation.<code>` in es and en (raised as OQ-H2-6 by IMPL-CORE-001, 2026-11-13). |
