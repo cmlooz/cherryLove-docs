@@ -24,7 +24,7 @@ Approval states per phase: `draft` → `in_review` → `approved`. Only an appro
 | Phase | Name | Status |
 |-------|------|--------|
 | F0 | Foundations (spike, toolchain, stack, CI) | **approved** (Camilo, 2026-11-12) |
-| F1 | Shared kernel | draft |
+| F1 | Shared kernel | **approved** with patches F1.9, F1.12 (Camilo, 2026-11-12) |
 | F2 | Identity (membership, invites, auth) | draft |
 | F3 | Cards | draft |
 | F4 | Media + memories (songs, places) | draft |
@@ -192,10 +192,10 @@ REQ-F-LOG-01…04, REQ-F-SYNC-03. ADR-001 §3–5, ADR-005 §3, ADR-008, ADR-009
 | F1.6 | `feat(shared): add fail-closed couple-scoped manager` | Integration: default queryset raises; `for_couple()` filters; architecture test fails if `unscoped` appears outside `backoffice/infrastructure/` | ADR-005 §3, REQ-N-SEC-01 |
 | F1.7 | `feat(shared): add RFC 9457 problem details handler` | Unit per mapping (domain, DRF `ValidationError`, `Throttled`, `Http404`, unknown → 500 with no internals); `errors[].pointer` is JSON Pointer | ADR-010, REQ-N-QA-02 |
 | F1.8 | `feat(shared): add request id middleware and JSON logging` | `X-Request-ID` accepted (≤ 64, safe charset) or generated, echoed, present in log lines and problem bodies | REQ-N-QA-01, ADR-008 §7 |
-| F1.9 | `feat(shared): add security headers, CSP and CORS middleware` | HSTS, `nosniff`, `Referrer-Policy`, `frame-ancestors 'none'`, CSP for JSON and for Django Admin pages; `Cache-Control: no-store` on authenticated responses; CORS: only the web origin, with credentials; other origins get no `Access-Control-Allow-*` | ADR-016 §1, REQ-N-SEC-07, ADR-004 §2, ADR-011 §3 |
+| F1.9 | `feat(shared): add security headers, CSP and CORS middleware` | HSTS, `nosniff`, `Referrer-Policy`, `frame-ancestors 'none'`, CSP for JSON responses (Django Admin CSP is tested in F9.1, once the admin is installed); `Cache-Control: no-store` on authenticated responses; CORS: only the web origin, with credentials; other origins get no `Access-Control-Allow-*` | ADR-016 §1, REQ-N-SEC-07, ADR-004 §2, ADR-011 §3 |
 | F1.10 | `feat(shared): add cursor pagination` | Unit: opaque cursor round trip; tampered cursor → 400; limit 1–500, default 50; shape `{results, next_cursor}` | REQ-N-PERF-02, ADR-003 §5 |
 | F1.11 | `feat(audit): add partitioned audit_event table` | Integration: monthly partitions (current + 3 ahead) by raw-SQL migration; app role `UPDATE` → permission denied; maintenance `UPDATE` → trigger raises; per-partition indexes exist | REQ-F-LOG-03/04, ADR-008 §1/§4/§5 |
-| F1.12 | `feat(audit): add AuditLog port with field classification` | Unit: diff keeps values only for loggable fields, `{changed: true}` for content; failed-login email stored as HMAC; architecture test: every registered entity field is classified. Integration: in-transaction write commits with the change; rejected attempt written after rollback | REQ-F-LOG-01/02, ADR-008 §2/§3 |
+| F1.12 | `feat(audit): add AuditLog port with field classification` | Unit: diff keeps values only for loggable fields, `{changed: true}` for content; failed-login email stored as HMAC with its own key `AUDIT_HMAC_KEY` (env only, listed in `.env.example`, ≠ KEK and `SECRET_KEY`; empty key rejected at startup); architecture test: every registered entity field is classified. Integration: in-transaction write commits with the change; rejected attempt written after rollback | REQ-F-LOG-01/02, ADR-008 §2/§3 |
 | F1.13 | `feat(shared): add AES-GCM envelope cipher` | Unit: round trip; AAD swap (other row/field/couple) fails; tampered byte fails; KEK re-wrap keeps values readable; format `version | key_id | nonce | ct`. DEK store is a port (fake now, table in F2.4) | REQ-N-SEC-05, ADR-009 §1–3/§6 |
 | F1.14 | `feat(shared): add cache port with fail-open Redis adapter` | Integration: hit/miss; Redis unreachable → value computed and a warning logged; 24 h safety TTL | ADR-011 §1–2, REQ-N-PERF-04 |
 | F1.15 | `feat(shared): add job queue port on django-tasks-db` | Integration: job row rolls back with the transaction; same idempotency key twice → one execution; `default` and `media` queues | ADR-013 §1–2, ADR-016 §1 |
@@ -445,7 +445,7 @@ OQ-002, OQ-005, OQ-007.
 
 | ID | Commit | Test (proves) | IDs |
 |----|--------|---------------|-----|
-| F9.1 | `feat(backoffice): add staff roles` | Migration creates groups `support` (view metadata), `admin` (+ change Couple, Invite, quotas, birth date), `superadmin` (`is_superuser`); a matrix test per staff row; staff login audited and throttled; staff 2FA step added here **only if OQ-002 is accepted** | REQ-F-ADM-08, DEC-016, ADR-005 §5 |
+| F9.1 | `feat(backoffice): add staff roles` | Migration creates groups `support` (view metadata), `admin` (+ change Couple, Invite, quotas, birth date), `superadmin` (`is_superuser`); a matrix test per staff row; staff login audited and throttled; Django Admin pages served with their own CSP (moved from F1.9); staff 2FA step added here **only if OQ-002 is accepted** | REQ-F-ADM-08, DEC-016, ADR-005 §5 |
 | F9.2 | `feat(backoffice): add couple, user and invite admin` | Admin actions call existing use cases (create couple, resend/revoke invite, correct birth date, set timezone); architecture test: Card, Memory, Song, Place, Note are **not** registered | REQ-F-ADM-01/02/04/09, REQ-N-SEC-08 |
 | F9.3 | `feat(backoffice): add quotas and settings admin` | Changing a quota is audited and applies to the next reservation; per-couple override | REQ-F-ADM-05 |
 | F9.4 | `feat(identity): add archive couple use case` | Accounts disabled, refresh tokens revoked, actor cache deleted (F2.15), `purge_after = +90 d`, audited; login → `couple_archived` | REQ-F-ADM-03, REQ-F-AUTH-09, DEC-019 |
