@@ -28,7 +28,7 @@ Approval states per phase: `draft` → `in_review` → `approved`. Only an appro
 | F2 | Identity (membership, invites, auth) | **approved** with patches F2.5, F2.8, F2.12/13, F2.15 and OQ-011 (Camilo, 2026-11-13) |
 | F3 | Cards | **approved** with patches F3.2, F3.3, F3.5, integration test, §2 upsert rule and OQ-012 (Camilo, 2026-11-13) |
 | F4 | Media + memories (songs, places) | **approved** with patches F4.8, F4.10…F4.13 (Camilo, 2026-11-13) |
-| F5 | Diary | draft |
+| F5 | Diary | **approved** with patches F5.3, F5.5 and F0.8 addendum (Camilo, 2026-11-13) |
 | F6 | Favorites + home (+ load generator) | draft |
 | F7 | Sync | draft |
 | F8 | Notifications + scheduled jobs | draft |
@@ -154,7 +154,7 @@ ADR-008 §4, ADR-015, ADR-016.
 | F0.5 | `feat(shared): add app and maintenance database roles` | `tests/integration/test_db_roles.py`: migrations run as `cherrylove_maintenance`; `cherrylove_app` gets DML through default privileges and is denied DDL | ADR-008 §4, DATA-001 §3 |
 | F0.6 | `chore(arch): add import-linter contracts and module skeletons` | `tests/architecture/test_import_contracts.py`: contracts pass; every module has the four layers; a fixture module that imports Django in `domain` is reported | ADR-001 §6, REQ-N-ARC-01 |
 | F0.7 | `chore(contract): import approved OpenAPI v1 contract` | `tests/contract/test_contract_file.py`: `contract/openapi.v1.yaml` is byte-identical to API-001; OpenAPI 3.1; operation IDs follow `<tag>_<verb>_<noun>` | ADR-003 §1/§5 |
-| F0.8 | `feat(contract): narrow error codes and add examples per endpoint` | Contract test: every 4xx response declares a `code` enum that is a subset of `ErrorCode`; every operation has ≥ 1 example. **Contract change — Camilo approves**; also carries the answers to OQ-007/008 if they change the contract | API-001 `info.description`, ADR-010 §6 |
+| F0.8 | `feat(contract): narrow error codes and add examples per endpoint` | Contract test: every 4xx response declares a `code` enum that is a subset of `ErrorCode`; every operation has ≥ 1 example; schema `default`s on upsert inputs are documented as "applies on create only" (e.g. `NoteInput.visibility`, added with F5). **Contract change — Camilo approves**; also carries the answers to OQ-007/008 if they change the contract | API-001 `info.description`, ADR-010 §6 |
 | F0.9 | `chore(contract): tune drf-spectacular and add drift check` | Unit tests for `scripts/contract_drift.py` (normalization: key order, `$ref` names, enum order); contract test "generated ⊆ approved and equal per implemented operation" per OQ-006. Settings: `OAS_VERSION=3.1.0`, operation-ID hook, enum name overrides, `problem+json` responses, servers `/api/v1` | ADR-003 §2, ⚠️ "plan F budgets one step" |
 | F0.10 | `ci: add commit and traceability checks` | Unit tests for `scripts/check_commits.py` (Conventional Commits per commit, IDs in PR body) and `scripts/req_matrix.py` (REQ → tests matrix from `req` markers; unknown marker fails) | REQ-N-QA-06, ADR-014 §6, ADR-015 §1 |
 | F0.11 | `ci: add ci workflow` | The workflow itself on this PR: ruff, mypy strict, import-linter, unit, integration (service containers), `makemigrations --check`, drift + `oasdiff breaking`, coverage gates, `pip-audit`, image build; actions pinned by SHA; minimal `permissions`; Dependabot weekly (pip, actions) | ADR-015 §1/§3/§5, REQ-N-QA-04 |
@@ -333,9 +333,9 @@ boundaries (why Song and Place live in `memories`); metadata privacy (EXIF).
 |----|--------|---------------|-----|
 | F5.1 | `feat(diary): add note entity and visibility policies` | Unit: partner's `only_me` note is invisible (repository returns `None` → 404); edit own only | REQ-F-NOTE-02/05, DEC-014 |
 | F5.2 | `feat(diary): add note table with encrypted body` | Integration: `body_enc` no plaintext; partial index for `only_me` | REQ-N-SEC-05, DATA-001 §4 |
-| F5.3 | `feat(diary): add note upsert and delete with visibility event` | Change recorded + audited; `NoteVisibilityChanged` / `NoteDeleted` published after commit | REQ-F-NOTE-01/05, ADR-001 §3 |
+| F5.3 | `feat(diary): add note upsert and delete with visibility event` | Change recorded + audited; `NoteVisibilityChanged` / `NoteDeleted` published after commit; `visibility` defaults to `shared` **on create only** — an edit without it keeps the stored value (an `only_me` note is never published by omission) | REQ-F-NOTE-01/05, ADR-001 §3 |
 | F5.4 | `feat(diary): add list and get note endpoints` | List shows author and `created_at`, excludes partner's `only_me`, fixed query count; get → 404 for partner's `only_me` | REQ-F-NOTE-03, REQ-N-PERF-02 |
-| F5.5 | `test(diary): add matrix rows and cross-couple factories` | "Read `only_me` note" matrix row; harness covers note routes | ADR-005 §7 |
+| F5.5 | `test(diary): add matrix rows and cross-couple factories` | "Read `only_me` note" matrix row; `PUT` / `DELETE` on the partner's `only_me` note → 404, never 403 (existence stays secret); harness covers note routes | ADR-005 §7 |
 
 **Phase integration test:** A writes `only_me` → B's list and get never show it → A switches to `shared` → B sees it
 → audit has create, update and view events.
