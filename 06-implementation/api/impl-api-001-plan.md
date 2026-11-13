@@ -25,7 +25,7 @@ Approval states per phase: `draft` → `in_review` → `approved`. Only an appro
 |-------|------|--------|
 | F0 | Foundations (spike, toolchain, stack, CI) | **approved** (Camilo, 2026-11-12) |
 | F1 | Shared kernel | **approved** with patches F1.9, F1.12 (Camilo, 2026-11-12) |
-| F2 | Identity (membership, invites, auth) | draft |
+| F2 | Identity (membership, invites, auth) | **approved** with patches F2.5, F2.8, F2.12/13, F2.15 and OQ-011 (Camilo, 2026-11-13) |
 | F3 | Cards | draft |
 | F4 | Media + memories (songs, places) | draft |
 | F5 | Diary | draft |
@@ -231,18 +231,18 @@ ADR-009 §1, ADR-011 §1, ADR-012 §4, DATA-001 §3.
 | F2.2 | `feat(identity): add couple and membership constraints` | Integration: 3rd member → `IntegrityError`; user in a 2nd couple → `IntegrityError`; `UPDATE couple_id` → trigger error; staff user as member → trigger error | REQ-F-AUTH-05, DATA-001 §3 |
 | F2.3 | `feat(sync): add ChangeRecorder adapter on sync_state` | Integration: two concurrent writers of one couple get consecutive `seq` and commit order = `seq` order; `sync_entity_index` upserts one row per entity | ADR-006 §1, REQ-F-SYNC-06 |
 | F2.4 | `feat(shared): add couple data key store` | Integration: DEK created with the couple, stored wrapped; raw SQL shows no plaintext key | ADR-009 §1, DATA-001 §5 |
-| F2.5 | `feat(identity): add create couple use case and command` | Unit with fakes; integration: couple + `sync_state` + DEK + two invites + two invite-email jobs + `admin.couple_created` audit in one transaction; email already in a couple → `email_already_in_couple`. Inbound adapter: `manage.py create_couple` until F9 | REQ-F-AUTH-01, REQ-F-AUTH-10, REQ-F-ADM-01 |
+| F2.5 | `feat(identity): add create couple use case and command` | Unit with fakes; integration: couple + `sync_state` + DEK + two invites + two invite-email jobs + `admin.couple_created` audit in one transaction; email already in a couple → `email_already_in_couple`. Inbound adapter: `manage.py create_couple` until F9, run as actor `system` (no staff exists yet); `sync_state` created through `sync/application/public.py`, never sync infrastructure (ADR-001 §3) | REQ-F-AUTH-01, REQ-F-AUTH-10, REQ-F-ADM-01 |
 | F2.6 | `feat(identity): add invite issue, resend and revoke` | Unit: 32-byte token, only SHA-256 stored, 72 h; resend revokes the old token and issues a new one; one pending invite per seat (partial unique) | REQ-F-AUTH-02, REQ-F-ADM-02, DEC-017 |
 | F2.7 | `feat(identity): add bilingual invite email job` | Integration: Mailpit receives one email, Spanish first then English; re-running the job sends nothing (idempotency key) | ADR-012 §4, ADR-013 §2/§5 |
-| F2.8 | `feat(identity): add get and accept invite endpoints` | `identity_get_invite`, `identity_accept_invite`: expired → `invite_expired`; revoked → `invite_revoked`; full → `couple_full`; archived → `couple_archived`; second partner is not asked relationship start; first partner can use the app alone; throttle 10/h per IP | REQ-F-AUTH-02…06, REQ-F-AUTH-10, DEC-018 |
+| F2.8 | `feat(identity): add get and accept invite endpoints` | `identity_get_invite`, `identity_accept_invite`: expired → `invite_expired`; revoked → `invite_revoked`; full → `couple_full`; archived → `couple_archived`; second partner is not asked relationship start; first partner can use the app alone; throttle 10/h per IP; the returned session follows `X-CherryLove-Client` (web: refresh only in the `cl_refresh` cookie, never in the body; mobile: in the body) | REQ-F-AUTH-02…06, REQ-F-AUTH-10, DEC-018 |
 | F2.9 | `feat(identity): add JWT token issuer adapter` | Unit: access 10 min, refresh 30 days, HS256 with a key ≠ `SECRET_KEY`, claims only `sub/exp/iat/jti` (no `couple_id`) — `djangorestframework-simplejwt` + blacklist app enter | ADR-004 §1 |
 | F2.10 | `feat(identity): add login, refresh and logout endpoints` | Web: refresh only in `cl_refresh` cookie (`HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth/`), never in body; cookie calls without `X-CherryLove-Client: web` → 403; mobile: pair in body; every attempt audited | REQ-F-AUTH-07, REQ-F-ACC-06, REQ-N-SEC-03, ADR-004 §2/§6 |
 | F2.11 | `feat(identity): add refresh token reuse detection` | Replaying a rotated refresh → 401, **all** the user's refresh tokens revoked, `auth.refresh_reused` audit | ADR-004 §3, ADR-014 §5 |
-| F2.12 | `feat(identity): add auth throttles that fail closed` | Login 5/min per IP+email, recovery 3/h per email; Redis down → 503 `service_unavailable` on these scopes only | REQ-N-SEC-04, ADR-004 §4, ADR-011 §2 |
-| F2.13 | `feat(identity): add password recovery` | Same status and body whether the email exists or not; token valid 30 min, dead after password change; email in the account's language | REQ-F-AUTH-08, ADR-004 §4, ADR-012 §4 |
+| F2.12 | `feat(identity): add auth throttles that fail closed` | Login 5/min per IP+email; Redis down → 503 `service_unavailable` on auth scopes only (the recovery scope is tested in F2.13, where its endpoint exists) | REQ-N-SEC-04, ADR-004 §4, ADR-011 §2 |
+| F2.13 | `feat(identity): add password recovery` | Same status and body whether the email exists or not; token valid 30 min, dead after password change; email in the account's language; throttle 3/h per email, failing closed | REQ-F-AUTH-08, ADR-004 §4, ADR-012 §4 |
 | F2.14 | `feat(identity): add actor resolution with cached membership` | `IsCouplePartner`: active user, has couple, couple active; cached `actor:{user_id}` 10 min; actor never read from URL/body/header | ADR-005 §1, ADR-011 §1, REQ-N-SEC-01 |
-| F2.15 | `feat(identity): invalidate actor cache on disable and archive` | Disabling a user deletes the key; the next request with a still-valid access token is rejected at once (not after 10 min); the same hook is called by F9.4 | ADR-005 consequence, REQ-F-AUTH-09 |
-| F2.16 | `feat(identity): add me, couple header and change password` | `identity_get_me`/`update_me` (name, language; birth date read-only); `home_get_couple`; `identity_change_password` needs the current password and revokes every other session | REQ-F-ACC-02/03/04, REQ-F-HOME-01, DEC-025 |
+| F2.15 | `feat(identity): add deactivate user with actor cache invalidation` | New use case `deactivate_user` (REQ-F-ADM-01, reused by F9.2) revokes refresh tokens and deletes the key; the next request with a still-valid access token is rejected at once (not after 10 min); the same hook is called by F9.4 | ADR-005 consequence, REQ-F-AUTH-09 |
+| F2.16 | `feat(identity): add me, couple header and change password` | `identity_get_me`/`update_me` (name, language; birth date read-only); `home_get_couple`; `identity_change_password` needs the current password and revokes every other session; how the current session is identified follows OQ-011 | REQ-F-ACC-02/03/04, REQ-F-HOME-01, DEC-025 |
 | F2.17 | `test(identity): add generated cross-couple suite and identity matrix rows` | Harness walks the URL conf; every route with an ID parameter needs a resource factory or the test fails; couple B's token on couple A's ID → 404. Permission-matrix rows for onboarding | ADR-005 §7, ADR-014 §5, REQ-N-SEC-02 |
 
 **Phase integration test:** `tests/integration/identity/test_onboarding_journey.py` — `create_couple` → invite in
@@ -479,6 +479,7 @@ Recorded in `02-requirements/open-questions.md` with recommendations. Each block
 | OQ-008 | How a media status change reaches the device (no `media` sync entity type in API-001) | F0.8, F4.7 |
 | OQ-009 | May the song form link the partner's memories? | F4.12 |
 | OQ-010 | Reminders for a 29 February date in non-leap years | F8.9 |
+| OQ-011 | Change password cannot tell which session is the current one | F2.16 |
 
 ## Next step
 
