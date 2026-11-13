@@ -1,8 +1,8 @@
 ---
 id: IMPL-CORE-001
-status: draft
-approved_by: null
-approved_at: null
+status: approved
+approved_by: Camilo
+approved_at: 2026-11-13
 ---
 
 # IMPL-CORE-001 — Implementation plan: `cherrylove-core`
@@ -299,4 +299,5 @@ when these rows are copied into `02-requirements/open-questions.md` (this sessio
 
 ## Next step
 
-OQ-H2-1…6 answered. Camilo approves, rejects, or patches the plan by phase/step number.
+Approved by Camilo on 2026-11-13. Phase 1 starts in `cherrylove-core` (re-verify pins first, REQ-N-QA-05); phase 9
+starts only after UX-001 is approved.
