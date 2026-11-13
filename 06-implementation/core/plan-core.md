@@ -21,7 +21,7 @@ Session: H2 (GOV-004-H2). Runs in parallel with plan F.
   media uploads → "Cherry" content (tokens + copy catalogs, **waits for UX-001**).
 - Core has **zero runtime dependencies** and no DOM / React / React Native / Node imports. The compiler and the
   linter enforce it, not discipline (§3).
-- 6 gaps found, listed in §6 with a recommendation each. Phases 2 and 4 depend on two of them.
+- 6 gaps found and **answered by Camilo on 2026-11-13** (§6, all option A). Three need plan F changes (§7).
 
 ## 1. Version re-verification (REQ-N-QA-05)
 
@@ -36,8 +36,8 @@ Verified on 2026-11-12 with `npm view` (npm registry) and the endoflife.date API
 | `vitest` | 5.1.0 | 5.1.0 | ✅ keep (engines `^24.0.0`) |
 | `openapi-typescript` | 7.13.0 | 7.13.0 | ✅ keep; CLI offers `--enum-values` (used in phase 2) |
 | `fast-check` | 4.10.2 | 4.10.2 | ✅ keep |
-| `@vitest/coverage-v8` | **not pinned** | 5.1.0 | ⚠️ needed for the coverage gate → OQ-H2-3 |
-| `vite` | 8.3.8 (web only) | — | ⚠️ `vitest` 5.1.0 declares `vite` as a **non-optional peer** → also a core dev dependency → OQ-H2-3 |
+| `@vitest/coverage-v8` | **not pinned** | 5.1.0 | ⚠️ needed for the coverage gate → pinned 5.1.0 (OQ-H2-3) |
+| `vite` | 8.3.8 (web only) | — | ⚠️ `vitest` 5.1.0 declares `vite` as a **non-optional peer** → also a core dev dependency, pinned 8.3.8 (OQ-H2-3) |
 
 No patch bumps needed today. Phase 1 step 1 repeats this check and records it in the commit body.
 
@@ -46,7 +46,7 @@ No patch bumps needed today. Phase 1 step 1 repeats this check and records it in
 | # | Phase | Depends on | Why here |
 |---|-------|------------|----------|
 | 1 | Tooling, CI, publishing | — | The fence before the house: every later step must land on a green `ci` and be installable. Publishing an almost-empty `0.1.0` proves the registry path before anything depends on it. |
-| 2 | Contract types | 1, OQ-H2-1 | Every other folder is typed from the contract (REQ-N-ARC-03). |
+| 2 | Contract types | 1 | Every other folder is typed from the contract (REQ-N-ARC-03). |
 | 3 | API client | 2 | Highest-risk non-sync code (auth refresh, Problem Details); first thing web/mobile need (login). |
 | 4 | Validation | 2 | Needed by forms and by the sync engine (validate before enqueue, REQ-N-ARC-09). |
 | 5 | i18n engine | 2 | Small and independent; unblocks web/mobile phase 1 (login screen + errors). Catalog *content* waits for UX (phase 9). |
@@ -91,8 +91,9 @@ tokens   (imports nothing)
 
 - Package `@cmlooz/cherrylove-core` on GitHub Packages; a tag `vX.Y.Z` publishes it (ADR-015 §4).
 - The package exports `CONTRACT_VERSION` (the contract it was generated from).
-- SemVer rule → OQ-H2-2 (recommended: `0.y.z` until phase 9 and `contract-v1.0.0`; then core major = contract
-  major, contract additive → core minor, core-only fixes → patch).
+- SemVer rule (OQ-H2-2): `0.y.z` while building (each phase = minor) until phase 9 and `contract-v1.0.0`; from
+  `1.0.0`: core major = contract major; contract additive or core feature → minor; fix → patch. A change that would
+  break only core's TS API inside contract v1 is shipped as a deprecation, not a major.
 - GitHub Packages needs a token **even for public packages** (verified in GitHub docs, "Working with the npm
   registry"):
 
@@ -133,7 +134,8 @@ supply-chain basics (SHA-pinned actions, least-privilege tokens); registries and
 ### Phase 2 — Contract types
 
 **Goal:** `src/contract/` generated from one pinned, checksummed contract version.
-**REQ:** REQ-N-ARC-03, REQ-N-ARC-04, ADR-003 §3 and §5. **Blocked by:** OQ-H2-1.
+**REQ:** REQ-N-ARC-03, REQ-N-ARC-04, ADR-003 §3 and §5. **Source (OQ-H2-1):** API-001 from `cmlooz/cherryLove-docs` pinned at a commit SHA + sha256
+until plan F publishes the first `contract-v1.*` asset (F0.12); then `contract.lock.json` switches to it.
 
 | Step | Commit | Change | Test |
 |------|--------|--------|------|
@@ -175,7 +177,7 @@ cited per validator in step 4.3.
 | 4.1 | `feat(core): add field error model aligned with Problem errors` | `{ pointer, code, params }` (same as ADR-010 `errors[]`), tiny combinators, no library | REQ-N-ARC-09 client and server errors map to fields the same way |
 | 4.2 | `feat(core): validate contract primitives` | UUIDv7, civil date (real calendar day), timestamp, email, `https` URL, enums | REQ-F-SYNC-03 fast-check: generated UUIDv7 always valid, mutated version nibble rejected |
 | 4.3 | `feat(core): validate inputs of syncable entities` | One validator per `*Input` schema | per-entity REQ: limits and required fields |
-| 4.4 | `test(core): check constraint parity with the pinned contract` | Reads limits from the contract (OQ-H2-4) | REQ-N-ARC-03 every `maxLength`/`enum` in an `*Input` matches its validator |
+| 4.4 | `test(core): check constraint parity with the pinned contract` | Reads limits from the contract's JSON asset with `JSON.parse` (OQ-H2-4); enabled once the first `contract-v1.*` release exists | REQ-N-ARC-03 every `maxLength`/`enum` in an `*Input` matches its validator |
 
 **Done when:** release `0.4.0`.
 **Concepts:** where validation belongs (shape on client, rules on server — server wins, REQ-F-SYNC-10); JSON Pointer;
@@ -227,7 +229,7 @@ ADR-006 §4–7, ADR-014 §2 and §4.
 |------|--------|--------|------|
 | 7.1 | `feat(core): pull changes by cursor` | Loop until `next_cursor = null`; changes + cursor saved in one transaction; `pending_card_count` stored | REQ-F-SYNC-06 interrupted pull resumes from the last saved cursor |
 | 7.2 | `feat(core): apply deletes and invisible records` | `op: delete` removes local copy (tombstone or no longer visible) | REQ-F-NOTE-02 partner's `only_me` note vanishes on pull |
-| 7.3 | `feat(core): recover from cursor_expired` | 410 → reset entities and cursor, full resync (outbox handling per OQ-H2-5) | REQ-F-SYNC-06 410 triggers one full resync and no data loss |
+| 7.3 | `feat(core): recover from cursor_expired` | 410 → reset entities and cursor, full resync, **outbox kept** and replayed afterwards (OQ-H2-5) | REQ-F-SYNC-06 410 with pending ops: full resync, then the ops replay; nothing written offline is lost |
 | 7.4 | `feat(core): schedule the sync cycle` | Push then pull; triggers (foreground, reconnect, local write debounced 2 s, 60 s timer); backoff with jitter capped at 5 min for network/5xx/429 (`Retry-After` respected) | REQ-F-SYNC-02 fake clock: debounce, timer and backoff cap |
 | 7.5 | `feat(core): expose sync status` | Global `offline / pending / synced`, per record `pending / synced / rejected`; tiny own observer (no RxJS) | REQ-F-SYNC-08 status transitions follow the cycle |
 | 7.6 | `test(core): property-test sync invariants` | fast-check model-based commands against a model server: random interleavings of writes, drops, duplicates, restarts | REQ-F-SYNC-05 no skipped change, deletes win, outbox order kept, replay idempotent |
@@ -245,7 +247,7 @@ deterministic time through a port.
 | Step | Commit | Change | Test |
 |------|--------|--------|------|
 | 8.1 | `feat(core): add upload ports and persistent queue` | `FileSource`, `StorageUploader` ports (FormData differs on web and React Native); queue in `LocalStore` | REQ-F-SYNC-07 queue survives a restart |
-| 8.2 | `feat(core): run the three-step upload flow` | Reserve (`media_create_upload`) → presigned POST → `media_complete_upload` → poll until `ready`/`rejected` | REQ-F-MEM-10 happy path reaches `ready` |
+| 8.2 | `feat(core): run the three-step upload flow` | Reserve (`media_create_upload`) → presigned POST → `media_complete_upload` → `ready`/`rejected` (by pull if plan F's OQ-008 adds `media_asset` to `SyncEntityType`, else polling `media_get_asset`) | REQ-F-MEM-10 happy path reaches `ready` |
 | 8.3 | `feat(core): hold outbox ops until their media is ready` | Dependency check in push | REQ-F-SYNC-07 memory op waits for its upload |
 | 8.4 | `feat(core): classify upload failures` | Retry network/5xx with backoff; `quota_exceeded`, `file_too_large`, `media_rejected` are final → record `rejected` | DEC-020 quota rejection is final and visible |
 | 8.5 | `feat(core): batch signed URL requests` | Batch IDs per frame, cache until expiry minus margin | REQ-N-SEC-06 twenty thumbnails → one request; expired URL refetched |
@@ -267,33 +269,34 @@ batching to avoid N+1 on the client.
 | 9.3 | `feat(core): add es and en catalogs` | Approved screen copy + `errors.<code>` for every contract code | REQ-N-UX-03 catalogs parse and cover approved screens |
 | 9.4 | `ci(core): make catalog checks block on real catalogs` | Phase 5 checks switch from fixtures to `es.json`/`en.json` | REQ-N-UX-03 CI fails on a removed `errors.*` key |
 
-**Done when:** release per OQ-H2-2 (recommended `1.0.0` if `contract-v1.0.0` is pinned).
+**Done when:** release `1.0.0` with `contract-v1.0.0` pinned (OQ-H2-2).
 **Concepts:** design tokens as a platform-neutral contract; WCAG contrast math; copy as a reviewed artifact.
 
 Later copy and token changes follow the same gate (REQ-N-UX-04) and ship as minor releases.
 
 ## 6. Open questions raised by this plan
 
-Provisional IDs: final `OQ-*` numbers are assigned when copied into `02-requirements/open-questions.md` (this
-session writes only under `06-implementation/core/`; plan F may add questions in parallel).
+All answered by Camilo on 2026-11-13. Provisional IDs: plan F already took OQ-005…010, so final numbers are assigned
+when these rows are copied into `02-requirements/open-questions.md` (this session writes only under
+`06-implementation/core/`).
 
-| ID | Question | Recommendation | Blocks |
-|----|----------|----------------|--------|
-| OQ-H2-1 | ADR-003 §3 says core pins a released `contract-v1.x.y` asset, but none exists until plan F moves the contract and its CI publishes. What does phase 2 pin meanwhile? | Pin API-001 from `cmlooz/cherryLove-docs` at a **commit SHA** (raw URL, public repo) with its sha256; switch `contract.lock.json` to the first `contract-v1.*` asset as soon as F publishes it — one-line change. | Phase 2 |
-| OQ-H2-2 | ADR-003 §3 says core "SemVer mirrors the contract", but core also changes on its own (engine, catalogs). Exact rule? | `0.y.z` until phase 9 and `contract-v1.0.0`; from `1.0.0`: core major = contract major; contract additive or core feature → minor; fix → patch; `CONTRACT_VERSION` exported. | Phase 1 release step |
-| OQ-H2-3 | Coverage needs `@vitest/coverage-v8` and `vitest` needs `vite` as a peer; ADR-016 pins neither for core. | Patch ADR-016: core dev deps `@vitest/coverage-v8` **5.1.0** (same release as Vitest) and `vite` **8.3.8** (already pinned for web). Dev only, no runtime effect. | Phase 1 |
-| OQ-H2-4 | Constraint and enum checks need to read the contract at test time; Node has no YAML parser. | Ask plan F to publish the contract asset **also as JSON** (drf-spectacular emits it); core reads it with `JSON.parse`, zero dependencies. Alternative: dev dependency `yaml` (needs an ADR-016 patch). | Step 4.4 |
-| OQ-H2-5 | ADR-006 §4: on 410 "the client wipes its local store". Does that include unpushed outbox ops? Wiping them loses offline writes. | Wipe entities and cursor, **keep the outbox**, full resync, then replay the outbox (ops carry full records; server rules decide). | Step 7.3 |
-| OQ-H2-6 | API-001 types `Problem.errors[].code` as a free string (`too_long`, `required`), so field-error translations cannot be checked like `ErrorCode`. | Ask plan F to add a `FieldErrorCode` enum to the contract; core checks `validation.<code>` keys the same way as `errors.<code>`. | Steps 5.5, 9.4 |
+| ID | Question | Answer (option A in every case) | Applies to |
+|----|----------|---------------------------------|------------|
+| OQ-H2-1 | ADR-003 §3 says core pins a released `contract-v1.x.y` asset, but none exists until plan F publishes one. What does phase 2 pin meanwhile? | Pin API-001 from `cmlooz/cherryLove-docs` at a **commit SHA** (raw URL, public repo) with its sha256; switch `contract.lock.json` to the first `contract-v1.*` asset when F publishes it. Temporary bridge; the contract stays fixed and verifiable. | Phase 2 |
+| OQ-H2-2 | ADR-003 §3 says core "SemVer mirrors the contract", but core also changes on its own. Exact rule? | `0.y.z` while building; from `1.0.0` (phase 9 + `contract-v1.0.0`): core major = contract major; contract additive or core feature → minor; fix → patch; core-only breaking changes inside v1 go through deprecation; `CONTRACT_VERSION` exported. | §4, steps 1.8, 9.x |
+| OQ-H2-3 | Coverage needs `@vitest/coverage-v8`; `vitest` needs `vite` as a peer; ADR-016 pins neither for core. | Patch ADR-016: core dev deps `@vitest/coverage-v8` **5.1.0** and `vite` **8.3.8**. Dev only. The patch is written by the owner of `04-architecture/`, not this session. | Phase 1 |
+| OQ-H2-4 | Constraint checks must read the contract at test time; Node has no YAML parser. | Plan F publishes the contract asset **also as JSON** (F0.12); core reads it with `JSON.parse`, zero dependencies. Step 4.4 is enabled when that asset exists. | Step 4.4 |
+| OQ-H2-5 | ADR-006 §4: on 410 "the client wipes its local store". Does that include unpushed outbox ops? | Wipe entities and cursor, **keep the outbox**, full resync, then replay it. Ops carry full records and are idempotent by `client_op_id`; the server answers `gone`/`rejected` where they no longer apply. Interpretation of ADR-006 §4, consistent with REQ-F-SYNC-02. | Step 7.3 |
+| OQ-H2-6 | API-001 types `Problem.errors[].code` as a free string, so field-error translations cannot be checked. | Plan F adds an additive `FieldErrorCode` enum to the contract (F0.8, contract change approved by Camilo in that PR); core validators may emit only those codes and CI checks `validation.<code>` in es and en. | Steps 4.1, 5.5, 9.3, 9.4 |
 
 ## 7. Notes for other plans
 
 | Plan | Note |
 |------|------|
-| F | OQ-H2-1 (first `contract-v1.*` release), OQ-H2-4 (JSON asset), OQ-H2-6 (`FieldErrorCode`). |
+| F | F0.12: also publish the contract asset as JSON (OQ-H2-4); core switches its pin to the first `contract-v1.*` release (OQ-H2-1). F0.8: add `FieldErrorCode` (OQ-H2-6). F's OQ-008 (`media_asset` sync type) decides how step 8.2 learns the upload status. |
 | G, H | Run the `./sync/testing` conformance suite against the IndexedDB / SQLite adapters. Inject `fetch`, timers and random bytes through core ports. |
 | H | `RandomSource` needs `crypto.getRandomValues` on Hermes (e.g. an Expo SDK module, not in ADR-016 yet); confirm Metro package `exports` support and Jest transform of an ESM package; confirm ES2022 built-ins on Hermes. |
 
 ## Next step
 
-Camilo approves, rejects, or patches by phase/step number and answers OQ-H2-1…6.
+OQ-H2-1…6 answered. Camilo approves, rejects, or patches the plan by phase/step number.
