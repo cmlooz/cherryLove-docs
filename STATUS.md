@@ -23,7 +23,7 @@ Control board for human approval. Nothing below `approved` is a decision.
 | REQ-DOC-001 | `02-requirements/functional.md` | **approved** (frozen) | Camilo | 2026-11-11 |
 | REQ-DOC-002 | `02-requirements/nfr.md` | **approved** (frozen) | Camilo | 2026-11-11 |
 | REQ-DOC-003 | `02-requirements/roles-actuators.md` | **approved** (frozen) | Camilo | 2026-11-11 |
-| REQ-DOC-004 | `02-requirements/open-questions.md` | **approved** (1 open post-freeze: OQ-002) | Camilo | 2026-11-11 |
+| REQ-DOC-004 | `02-requirements/open-questions.md` | **approved** (open post-freeze: OQ-002, OQ-005…010; OQ-011…016 resolved 2026-11-13) | Camilo | 2026-11-11 |
 | UX-001 | `03-ux-ui/` | not_started | | |
 | C4-001 | `04-architecture/c4-context-containers.md` | **approved** | Camilo | 2026-11-11 |
 | ADR-001 | `04-architecture/adr-001-modular-monolith.md` | **approved** | Camilo | 2026-11-11 |
@@ -47,7 +47,8 @@ Control board for human approval. Nothing below `approved` is a decision.
 | ADR-* | `04-architecture/` (index in README) | not_started | | |
 | LEARN-001 | `05-learning/` | not_started | | |
 | IMPL-API-001 | `06-implementation/api/impl-api-001-plan.md` | draft — **F0 approved**; F1…F9 draft | Camilo (F0) | 2026-11-12 |
-| IMPL-* | `06-implementation/` (web, mobile, core) | not_started | | |
+| IMPL-CORE-001 | `06-implementation/core/plan-core.md` | **approved** | Camilo | 2026-11-13 |
+| IMPL-* | `06-implementation/` (web, mobile) | not_started | | |
 | TEST-001 | `07-testing/` | not_started | | |
 | EVD-001 | `08-evidence/` | not_started | | |
 | AGENT-001 | `09-agents-skills/README.md` | in_review | | |
@@ -77,6 +78,8 @@ The older empty repo `cmlooz/CherryLove` is not part of DEC-004 and was left unt
 
 1. Approve GOV-001, GOV-002, GOV-004, GLO-001, AN-001, AGENT-001.
 2. Answer OQ-002 (staff 2FA).
+3. Patch ADR-016 with core dev pins `@vitest/coverage-v8` 5.1.0 and `vite` 8.3.8 (OQ-013).
+4. Plan F to absorb OQ-014 (JSON contract asset, F0.12) and OQ-016 (`FieldErrorCode`, F0.8).
 
 ## Checklist for freeze
 
