@@ -78,8 +78,7 @@ The older empty repo `cmlooz/CherryLove` is not part of DEC-004 and was left unt
 
 1. Approve GOV-001, GOV-002, GOV-004, GLO-001, AN-001, AGENT-001.
 2. Answer OQ-002 (staff 2FA).
-3. Patch ADR-016 with core dev pins `@vitest/coverage-v8` 5.1.0 and `vite` 8.3.8 (OQ-013, DEC-043).
-4. Plan F to absorb OQ-014 / DEC-044 (JSON contract asset, F0.12) and OQ-016 / DEC-046 (`FieldErrorCode`, F0.8).
+3. Plan F to absorb OQ-014 / DEC-044 (JSON contract asset, F0.12) and OQ-016 / DEC-046 (`FieldErrorCode`, F0.8).
 
 ## Checklist for freeze
 
