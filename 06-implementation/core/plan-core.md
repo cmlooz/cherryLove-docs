@@ -277,7 +277,7 @@ Later copy and token changes follow the same gate (REQ-N-UX-04) and ship as mino
 ## 6. Open questions raised by this plan
 
 All answered by Camilo on 2026-11-13. Recorded in `02-requirements/open-questions.md` as **OQ-011…016**
-(OQ-H2-1 = OQ-011 … OQ-H2-6 = OQ-016); plan F had already taken OQ-005…010.
+(OQ-H2-1 = OQ-011 … OQ-H2-6 = OQ-016) and decided as **DEC-041…046**; plan F had already taken OQ-005…010.
 
 | ID | Question | Answer (option A in every case) | Applies to |
 |----|----------|---------------------------------|------------|
