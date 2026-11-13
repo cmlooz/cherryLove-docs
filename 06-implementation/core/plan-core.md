@@ -276,9 +276,8 @@ Later copy and token changes follow the same gate (REQ-N-UX-04) and ship as mino
 
 ## 6. Open questions raised by this plan
 
-All answered by Camilo on 2026-11-13. Provisional IDs: plan F already took OQ-005…010, so final numbers are assigned
-when these rows are copied into `02-requirements/open-questions.md` (this session writes only under
-`06-implementation/core/`).
+All answered by Camilo on 2026-11-13. Recorded in `02-requirements/open-questions.md` as **OQ-011…016**
+(OQ-H2-1 = OQ-011 … OQ-H2-6 = OQ-016); plan F had already taken OQ-005…010.
 
 | ID | Question | Answer (option A in every case) | Applies to |
 |----|----------|---------------------------------|------------|
