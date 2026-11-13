@@ -27,7 +27,7 @@ Approval states per phase: `draft` → `in_review` → `approved`. Only an appro
 | F1 | Shared kernel | **approved** with patches F1.9, F1.12 (Camilo, 2026-11-12) |
 | F2 | Identity (membership, invites, auth) | **approved** with patches F2.5, F2.8, F2.12/13, F2.15 and OQ-011 (Camilo, 2026-11-13) |
 | F3 | Cards | **approved** with patches F3.2, F3.3, F3.5, integration test, §2 upsert rule and OQ-012 (Camilo, 2026-11-13) |
-| F4 | Media + memories (songs, places) | draft |
+| F4 | Media + memories (songs, places) | **approved** with patches F4.8, F4.10…F4.13 (Camilo, 2026-11-13) |
 | F5 | Diary | draft |
 | F6 | Favorites + home (+ load generator) | draft |
 | F7 | Sync | draft |
@@ -304,12 +304,12 @@ ADR-007, ADR-009 §4, DATA-001 §4–5.
 | F4.5 | `feat(media): add photo and avatar validation with Pillow` | Worker: real decode; declared type must match; EXIF (GPS) stripped; `thumb_400`, `display_1600`, `avatar_256` WebP; `Cache-Control: private, max-age=31536000, immutable`; quota moves reserved → used; a renamed text file → `rejected`, object deleted, reservation released (`Pillow` enters) | REQ-N-SEC-06, REQ-N-PERF-05, ADR-007 §3, ADR-011 §3 |
 | F4.6 | `feat(media): add video and audio validation with ffprobe` | Worker image adds Debian `ffmpeg`; MP4/MOV/MP3/M4A probed; `poster_800.webp`; fake container rejected | ADR-007 §3/§8 |
 | F4.7 | `feat(media): add signed URL batch and asset status endpoints` | `media_create_signed_urls` for N IDs in a fixed query count; other couple's IDs → not returned; `media_get_asset` shows status and rejection code; status change reaches the device per OQ-008 | ADR-007 §5, REQ-N-PERF-02, REQ-F-SYNC-10 |
-| F4.8 | `feat(media): add stale reservation release and object deletion` | Use cases (scheduled in F8): reservation older than 1 h released; deleting an entity enqueues object deletion in the transaction and lowers `used_bytes` | ADR-007 §4 |
+| F4.8 | `feat(media): add attach, detach, orphan cleanup and stale reservations` | `media/application/public.py` exposes `attach(media_id, owner)` / `detach(media_id)`, called by `memories` and `identity` inside their transaction; detach on entity delete or media replacement enqueues object deletion and lowers `used_bytes`; use cases (scheduled in F8): reservation older than 1 h released, asset never attached 24 h after `ready` deleted | ADR-007 §1/§4 |
 | F4.9 | `feat(memories): add places` | Upsert/delete/list (memory counts)/get; `description_enc`; coordinate checks; deleting a place clears `place_id` of its memories in the same use case | REQ-F-PLACE-01/02/03/05, ADR-009 §4 |
-| F4.10 | `feat(memories): add songs with source union` | `SongSource` = `upload | audio_url | spotify | youtube`; Spotify/YouTube URLs parsed server-side to `provider_ref`; `https` only; upload needs a ready `audio` asset of the same couple; `note_enc`; DB `CHECK` per source | REQ-F-SONG-02/05/06/08, REQ-N-LEG-01, ADR-007 §6 |
-| F4.11 | `feat(memories): add memories with song and place links` | Exactly one of `media_id` / `external_url`; media must be a ready photo/video of the couple; song 0..1, place 0..1 via composite FKs; edit own only; gallery order `(memory_date, id)` with cursor; management list | REQ-F-MEM-07/08, REQ-F-SONG-07, DEC-012 |
-| F4.12 | `feat(memories): edit song–memory relation from the song side` | Same column `memory.song_id` updated from either side; rule for partner's memories per OQ-009; song detail lists related memories in one query | REQ-F-SONG-03/06/07 |
-| F4.13 | `feat(identity): accept avatar media on profile update` | `update_me` accepts only a ready `avatar` asset owned by the user | REQ-F-ACC-01 |
+| F4.10 | `feat(memories): add songs with source union` | `SongSource` = `upload | audio_url | spotify | youtube`; Spotify/YouTube URLs parsed server-side to `provider_ref`; `https` only; upload needs a `pending` or `ready` `audio` asset of the same couple owned by the author; `note_enc`; DB `CHECK` per source | REQ-F-SONG-02/05/06/08, REQ-N-LEG-01, ADR-007 §6 |
+| F4.11 | `feat(memories): add memories with song and place links` | Exactly one of `media_id` / `external_url`; media must be `pending` or `ready` (an offline op arrives before validation ends, ADR-006 §6), of the couple, owned by the author, with `kind` = `media_kind`; song 0..1, place 0..1 via composite FKs; a `song_id`/`place_id` pointing to a tombstoned entity is rejected (stops LWW from re-linking deleted items, REQ-F-SYNC-10); edit own only; one list `memories_list_memories` (both partners, gallery order `(memory_date, id)`, cursor) serves gallery and management | REQ-F-MEM-07/08, REQ-F-SONG-07, DEC-012 |
+| F4.12 | `feat(memories): edit song–memory relation from the song side` | Same column `memory.song_id` updated from either side; `memory_ids` sets `song_id` on the author's **own** memories only (API-001 `SongInput.memory_ids`); the song detail still lists both partners' linked memories; song detail lists related memories in one query | REQ-F-SONG-03/06/07 |
+| F4.13 | `feat(identity): accept avatar media on profile update` | `update_me` accepts only a `pending` or `ready` `avatar` asset owned by the user, attached through the media facade | REQ-F-ACC-01 |
 | F4.14 | `test(memories): add matrix, cross-couple factories and gallery plan` | Matrix rows for memories/songs/places/media; cross-couple harness covers every route; gallery `EXPLAIN` uses `(couple_id, memory_date, id)` | ADR-005 §7, REQ-N-PERF-03 |
 
 **Phase integration test:** upload a photo by presigned POST → complete → worker → variants ready → memory created
@@ -479,7 +479,7 @@ Recorded in `02-requirements/open-questions.md` with recommendations. Each block
 | OQ-006 | Drift check while endpoints are implemented phase by phase | F0.9 |
 | OQ-007 | "View" events and "items visited" when clients read from the local store | F0.8, F3, F9.7 |
 | OQ-008 | How a media status change reaches the device (no `media` sync entity type in API-001) | F0.8, F4.7 |
-| OQ-009 | May the song form link the partner's memories? | F4.12 |
+| OQ-009 | ~~May the song form link the partner's memories?~~ Resolved by API-001 (`SongInput.memory_ids`: own memories only) | — |
 | OQ-010 | Reminders for a 29 February date in non-leap years | F8.9 |
 | OQ-011 | Change password cannot tell which session is the current one | F2.16 |
 | OQ-012 | A card created or edited with a `publish_at` already in the past | F3.3 |
