@@ -4,6 +4,7 @@ status: approved
 approved_by: Camilo
 approved_at: 2026-11-12
 verified_at: 2026-11-12
+amended_by: DEC-043 (§4, core test pins, 2026-11-13)
 ---
 
 # ADR-016 — Pinned versions
@@ -104,13 +105,17 @@ System binary in the worker image: `ffmpeg` from the base image's Debian package
 | `expo` | **58.0.24** (SDK 58) | mobile |
 | `react-native` | 0.88.1 (Expo SDK 58 pin) | mobile |
 | `expo-router` 58.0.31, `expo-secure-store` 58.0.3, `expo-notifications` 58.1.9, `expo-sqlite` 58.0.16, `expo-image-manipulator` 58.0.16 | Expo SDK 58 pins | mobile |
-| `vite` | 8.3.8 | web |
+| `vite` | 8.3.8 | web; core (dev, peer of `vitest`, DEC-043) |
 | `@vitejs/plugin-react` | 6.3.0 | web |
 | `openapi-typescript` | 7.13.0 | core (dev) |
 
-Dev only: `vitest` 5.1.0 (core, web), `jest` 30.5.2 + `jest-expo` 58.0.14 (mobile), `@testing-library/react` 16.3.3,
+Dev only: `vitest` 5.1.0 (core, web), `@vitest/coverage-v8` 5.1.0 (core, DEC-043), `jest` 30.5.2 + `jest-expo` 58.0.14 (mobile), `@testing-library/react` 16.3.3,
 `@testing-library/react-native` 14.1.0, `fast-check` 4.10.2, `@playwright/test` 1.65.0, `@axe-core/playwright` 4.14.0,
 `eslint` **9.39.5**, `typescript-eslint` 8.72.2, `eslint-plugin-react` 7.37.5.
+
+Why `vite` in core (DEC-043, verified 2026-11-13 with `npm view`): `vitest` 5.1.0 declares `vite`
+`^6.4.0 || ^7.0.0 || ^8.0.0` as a **non-optional** peer, so npm installs it anyway; pinning keeps it exact.
+`@vitest/coverage-v8` 5.1.0 requires `vitest` 5.1.0 exactly and enables the ADR-014 §7 coverage gate.
 
 ## 5. CLI tools (CI and local, not project dependencies)
 
