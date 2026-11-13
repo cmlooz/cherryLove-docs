@@ -26,7 +26,7 @@ Approval states per phase: `draft` → `in_review` → `approved`. Only an appro
 | F0 | Foundations (spike, toolchain, stack, CI) | **approved** (Camilo, 2026-11-12) |
 | F1 | Shared kernel | **approved** with patches F1.9, F1.12 (Camilo, 2026-11-12) |
 | F2 | Identity (membership, invites, auth) | **approved** with patches F2.5, F2.8, F2.12/13, F2.15 and OQ-011 (Camilo, 2026-11-13) |
-| F3 | Cards | draft |
+| F3 | Cards | **approved** with patches F3.2, F3.3, F3.5, integration test, §2 upsert rule and OQ-012 (Camilo, 2026-11-13) |
 | F4 | Media + memories (songs, places) | draft |
 | F5 | Diary | draft |
 | F6 | Favorites + home (+ load generator) | draft |
@@ -91,6 +91,7 @@ Each later phase starts with the same re-check (5 minutes, no commit unless a pa
 | A step that touches `contract/` is a contract change: Camilo approves it explicitly | ADR-003 §1 |
 | No secrets in the repo; `.env.example` only | DEC-039 |
 | A gap found mid-phase stops the step and becomes an OQ | CLAUDE.md "never assume" |
+| Upsert by client ID: an ID that already exists in **another** couple → `404 not_found` (never a 500 from the PK); the cross-couple harness also sends `PUT` with a foreign ID | ADR-005 §4/§7, REQ-N-SEC-02 |
 
 **Phase "done" (common to all):** green `ci` on the PR; coverage `domain` + `application` ≥ 90 % and overall
 ≥ 80 % (ADR-014 §7); import-linter green; drift check green; every step's REQ appears in the REQ → tests matrix;
@@ -266,16 +267,17 @@ REQ-N-PERF-03, REQ-N-PERF-04, REQ-F-SYNC-05 (columns). ADR-005 §4, ADR-006 §1,
 | ID | Commit | Test (proves) | IDs |
 |----|--------|---------------|-----|
 | F3.1 | `feat(cards): add card entity and policies` | Unit: edit/delete only by author (`not_author` 403) and only before publish (`card_already_published` 409); partner's scheduled card invisible | REQ-F-CARD-05/06/07, ADR-005 §4 |
-| F3.2 | `feat(cards): add card table with encrypted body` | Integration: `body_enc` holds no plaintext; trigger rejects body/`publish_at` change after publish; composite FK to membership; indexes from DATA-001 | REQ-N-SEC-05, DATA-001 §4 |
-| F3.3 | `feat(cards): add upsert and delete use cases and endpoints` | `cards_upsert_card` (client UUIDv7, `version` + 1, optional `base_version` kept for F7), `cards_delete_card` (tombstone); change recorded and audited in the same transaction | REQ-F-CARD-05/07, REQ-F-SYNC-03/05 |
+| F3.2 | `feat(cards): add card table with encrypted body` | Integration: `body_enc` holds no plaintext; trigger rejects body/`publish_at` change **and setting `deleted_at`** after publish (hard purge by the maintenance role unaffected); composite FK to membership; indexes from DATA-001 | REQ-N-SEC-05, DATA-001 §4 |
+| F3.3 | `feat(cards): add upsert and delete use cases and endpoints` | `cards_upsert_card` (client UUIDv7, `version` + 1, optional `base_version` kept for F7), `cards_delete_card` (tombstone); change recorded and audited in the same transaction; an ID owned by another couple → 404; `publish_at` already past follows OQ-012 | REQ-F-CARD-05/07, REQ-F-SYNC-03/05 |
 | F3.4 | `feat(cards): add publish due cards use case` | `FixedClock`: due cards get `published_at`, a change per card, idempotent on rerun; run by `manage.py publish_due_cards` until the F8 scheduler | REQ-F-CARD-06, ADR-006 §1, ADR-013 §3 |
-| F3.5 | `feat(cards): add today query with deterministic past card` | Civil date in the couple timezone (test zone **with DST**); carousel order identical for both partners; no card today → same random past card for both (seed = couple + civil date, seeded port); cache key `cards:today:{couple}:{date}:{seq}` holds IDs only; Redis down → same answer | REQ-F-CARD-01/02/03/04, ADR-011 §1, ADR-014 §4 |
+| F3.5 | `feat(cards): add today query with deterministic past card` | "Published today" = civil date of `published_at` in the couple timezone (test zone **with DST**); carousel order identical for both partners; no card today → same random past card for both (seed = couple + civil date, seeded port); cache key `cards:today:{couple}:{date}:{seq}` holds IDs only; Redis down → same answer | REQ-F-CARD-01/02/03/04, ADR-011 §1, ADR-014 §4 |
 | F3.6 | `feat(cards): add my cards, get card and pending count` | `cards_list_mine` cursor-paginated with a fixed query count (`django_assert_num_queries`); partner's scheduled card → 404; `cards_get_pending_count` returns a number only | REQ-F-CARD-05/06, REQ-N-PERF-02, DEC-007 |
 | F3.7 | `test(cards): add permission matrix and cross-couple factories` | Matrix rows for cards; cross-couple harness now covers every card route | ADR-005 §7 |
 | F3.8 | `test(cards): verify card query plans` | Integration: `EXPLAIN (FORMAT JSON)` on today, mine and the publish query uses the DATA-001 indexes (small seed; 1 M-row run in F6) | REQ-N-PERF-03 |
 
 **Phase integration test:** partner A schedules a card for tomorrow → B sees counter 1 and 404 on its ID → clock
-moves → publish → B's today shows it → A's edit returns 409 → audit has create, publish and view events.
+moves → publish → B's today shows it → A's edit returns 409 → audit has create and publish events, plus view events per OQ-007 (at least the
+server-observed `GET`).
 
 **Done when:** common criteria.
 
@@ -480,6 +482,7 @@ Recorded in `02-requirements/open-questions.md` with recommendations. Each block
 | OQ-009 | May the song form link the partner's memories? | F4.12 |
 | OQ-010 | Reminders for a 29 February date in non-leap years | F8.9 |
 | OQ-011 | Change password cannot tell which session is the current one | F2.16 |
+| OQ-012 | A card created or edited with a `publish_at` already in the past | F3.3 |
 
 ## Next step
 
