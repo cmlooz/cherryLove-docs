@@ -46,7 +46,7 @@ Control board for human approval. Nothing below `approved` is a decision.
 | ADR-016 | `04-architecture/adr-016-pinned-versions.md` | **approved** | Camilo | 2026-11-12 |
 | ADR-* | `04-architecture/` (index in README) | not_started | | |
 | LEARN-001 | `05-learning/` | not_started | | |
-| IMPL-API-001 | `06-implementation/api/impl-api-001-plan.md` | draft — **F0…F5 approved**; F6…F9 draft | Camilo (F0…F5) | 2026-11-13 |
+| IMPL-API-001 | `06-implementation/api/impl-api-001-plan.md` | draft — **F0…F6 approved**; F7…F9 draft | Camilo (F0…F6) | 2026-11-13 |
 | IMPL-* | `06-implementation/` (web, mobile, core) | not_started | | |
 | TEST-001 | `07-testing/` | not_started | | |
 | EVD-001 | `08-evidence/` | not_started | | |

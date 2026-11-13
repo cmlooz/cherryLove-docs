@@ -29,7 +29,7 @@ Approval states per phase: `draft` → `in_review` → `approved`. Only an appro
 | F3 | Cards | **approved** with patches F3.2, F3.3, F3.5, integration test, §2 upsert rule and OQ-012 (Camilo, 2026-11-13) |
 | F4 | Media + memories (songs, places) | **approved** with patches F4.8, F4.10…F4.13 (Camilo, 2026-11-13) |
 | F5 | Diary | **approved** with patches F5.3, F5.5 and F0.8 addendum (Camilo, 2026-11-13) |
-| F6 | Favorites + home (+ load generator) | draft |
+| F6 | Favorites + home (+ load generator) | **approved** with patches F6.3, F6.5, F6.6, F6.7 and F7.4 note (Camilo, 2026-11-13) |
 | F7 | Sync | draft |
 | F8 | Notifications + scheduled jobs | draft |
 | F9 | Backoffice | draft |
@@ -62,7 +62,7 @@ Dev: `mypy` 2.4.1, `django-stubs` 6.1.2, `djangorestframework-stubs` 3.18.2, `im
 | Item | Finding | Action |
 |------|---------|--------|
 | PostgreSQL | 18.7 released, but `postgres:18.7-alpine` is still not on Docker Hub (HTTP 404) | Stay on 18.6; re-check at F0 start and bump if the image exists (patch) |
-| k6 | v2.4.0 is out (pin v2.3.0) | **Minor** bump → needs Camilo's OK; recommended at F6 |
+| k6 | v2.4.0 is out (pin v2.3.0) | Not needed; stays v2.3.0 (Camilo, F6 review) |
 | Redocly CLI | 2.78.0 is out (pin 2.77.0) | **Minor** bump → needs Camilo's OK; recommended at F0 |
 | Redis | 8.10 line exists (pin 8.8.4) | Minor line change → not applied |
 
@@ -358,11 +358,11 @@ ADR-014 §1.
 |----|--------|---------------|-----|
 | F6.1 | `feat(memories): add batched visibility facade` | `get_visible_items(actor, ids)` for memories, songs, places in ≤ 1 query per type | ADR-001 ⚠️ (batched facades) |
 | F6.2 | `feat(diary): add batched visibility facade` | Same for notes; partner's `only_me` never returned | REQ-F-FAV-04 |
-| F6.3 | `feat(favorites): add star and unstar` | `favorites_star_item` / `favorites_unstar_item`: only visible items (else 404); duplicate → `already_favorited` 409; partial unique; composite FK on `(couple_id, user_id)` | REQ-F-MEM-06, REQ-F-SONG-04, REQ-F-PLACE-04, REQ-F-NOTE-04 |
+| F6.3 | `feat(favorites): add star and unstar` | `favorites_star_item` / `favorites_unstar_item`: only visible items (else 404); same `favorite_id` + same item again → 201 with the existing favorite (idempotent retry); another ID for an already starred item → `already_favorited` 409; partial unique; composite FK on `(couple_id, user_id)` | REQ-F-MEM-06, REQ-F-SONG-04, REQ-F-PLACE-04, REQ-F-NOTE-04 |
 | F6.4 | `feat(favorites): add my favorites list with type filter` | `favorites_list_mine`: filter by type, memories carry `memory_date` for grouping, cursor, fixed query count | REQ-F-FAV-01/02/03 |
-| F6.5 | `feat(favorites): hide favorites of deleted or private items` | Read-time visibility filter is the guarantee; event handler tombstones the partner's favorite and records a change so devices drop it; test both, including a lost event | REQ-F-FAV-04, ADR-001 §4 |
-| F6.6 | `feat(favorites): add home dashboard` | `home_get_dashboard`: header via identity facade + both partners' favorites with `starred_by`, ordered by date; cache `home:{couple}:{seq}` holds refs only; batched hydration | REQ-F-HOME-01/02/03, ADR-011 §1 |
-| F6.7 | `feat(shared): add load-data generator` | `manage.py seed_load` (refuses outside local settings): 1 M rows each in `memories_memory`, `cards_card`, `diary_note`, `favorites_favorite`, `audit_event`, `sync_entity_index`, spread over many couples, real encryption, `COPY`-based; integration test with a small N checks counts and constraints | REQ-N-PERF-06, DEC-034, DATA-001 §6 |
+| F6.5 | `feat(favorites): hide favorites of deleted or private items` | A favorite is visible to an actor only if its **item** is (A's star on A's own `only_me` note never reaches B — not even its ID) in home, list and sync pull (F7.4); read-time visibility filter is the guarantee; event handler tombstones the partner's favorite and records a change so devices drop it; test both, including a lost event | REQ-F-FAV-04, ADR-001 §4 |
+| F6.6 | `feat(favorites): add home dashboard` | `home_get_dashboard`: header via identity facade + both partners' favorites grouped **one row per item** (`starred_by` array, API-001 `TimelineItem`), ordered by latest `starred_at` with keyset cursor; cache `home:{couple}:{seq}` holds first-page refs only; batched hydration | REQ-F-HOME-01/02/03, ADR-011 §1 |
+| F6.7 | `feat(shared): add load-data generator` | `manage.py seed_load` (refuses outside local settings): 1 M rows each in `memories_memory`, `cards_card`, `diary_note`, `favorites_favorite`, `audit_event`, `sync_entity_index`, spread over many couples, real encryption, `COPY`-based; runs as the maintenance role, creates the past audit partitions it fills, and records every seeded entity in `sync_entity_index`; integration test with a small N checks counts and constraints | REQ-N-PERF-06, DEC-034, DATA-001 §6 |
 | F6.8 | `perf: add k6 scripts and query plan report` | `perf/k6/{today,home,lists}.js` with threshold p95 < 200 ms, cache on and off; `perf/explain.py` stores `EXPLAIN ANALYZE` at 1 M rows; `tests/perf/` (marker `perf`, local/nightly) asserts index scans | REQ-N-PERF-01/03, ADR-011 §6, ADR-014 §1 |
 
 **Phase integration test:** both partners star items → home shows both with `starred_by` → B turns a note
@@ -388,7 +388,7 @@ ADR-005 §6, ADR-006, ADR-010 §4, ADR-014 §1/§5.
 | F7.1 | `feat(sync): add client operation store` | Same `client_op_id` twice → stored result returned, use case not run again | REQ-F-SYNC-04 |
 | F7.2 | `feat(sync): add push endpoint` | `sync_push_operations`: ≤ 100 ordered ops dispatched to the same use cases with the same `Actor`; results `applied` / `rejected` (embedded Problem) / `gone`; later ops on a rejected entity rejected; other couple's entity → rejected as not found without aborting the batch; one audit per op + `sync.pushed` | REQ-F-SYNC-02/04/10, ADR-006 §2, ADR-005 §6 |
 | F7.3 | `feat(sync): add last-write-wins with tombstones` | Older `base_version` still applies with `overwrote_newer: true` (result + audit); update after delete → `gone` | REQ-F-SYNC-05, ADR-006 §3 |
-| F7.4 | `feat(sync): add pull endpoint` | `sync_pull_changes`: opaque `seq` cursor, ≤ 500, batched facade loads per type; invisible → `delete`; `pending_card_count`; cursor older than `purged_through_seq` → 410 `cursor_expired` | REQ-F-SYNC-06, ADR-006 §4 |
+| F7.4 | `feat(sync): add pull endpoint` | `sync_pull_changes`: opaque `seq` cursor, ≤ 500, batched facade loads per type; invisible → `delete` (favorites follow their item's visibility, F6.5); `pending_card_count`; cursor older than `purged_through_seq` → 410 `cursor_expired` | REQ-F-SYNC-06, ADR-006 §4 |
 | F7.5 | `feat(identity): record couple header changes for sync` | Name or relationship-start change bumps `seq`; pull returns entity type `couple` | ADR-006 §7 |
 | F7.6 | `feat(sync): add tombstone and client operation purge` | Use cases (scheduled in F8): tombstones > 90 days hard-deleted and `purged_through_seq` advanced; client ops > 30 days deleted | ADR-006 §1/§5 |
 | F7.7 | `test(sync): add property-based sync invariants` | Hypothesis: replay idempotency; cursor never skips under concurrent writers; deletes win; invisible → delete | ADR-014 §1/§5 |
