@@ -1,8 +1,8 @@
 ---
 id: IMPL-API-001
-status: draft
-approved_by: null
-approved_at: null
+status: approved
+approved_by: Camilo
+approved_at: 2026-11-16
 ---
 
 # IMPL-API-001 — Implementation plan: `cherrylove-api`
@@ -32,7 +32,7 @@ Approval states per phase: `draft` → `in_review` → `approved`. Only an appro
 | F6 | Favorites + home (+ load generator) | **approved** with patches F6.3, F6.5, F6.6, F6.7 and F7.4 note (Camilo, 2026-11-13) |
 | F7 | Sync | **approved** with patches F7.1, F7.2, F7.4, F7.6, F6.5 wording and OQ-013 (Camilo, 2026-11-13) |
 | F8 | Notifications + scheduled jobs | **approved** with patches F8.4, F8.5, F8.8, F8.9 (Camilo, 2026-11-16) |
-| F9 | Backoffice | draft |
+| F9 | Backoffice | **approved** with patches F9.2, F9.5 (Camilo, 2026-11-16) |
 
 ---
 
@@ -448,10 +448,10 @@ OQ-002, OQ-005, OQ-007.
 | ID | Commit | Test (proves) | IDs |
 |----|--------|---------------|-----|
 | F9.1 | `feat(backoffice): add staff roles` | Migration creates groups `support` (view metadata), `admin` (+ change Couple, Invite, quotas, birth date), `superadmin` (`is_superuser`); a matrix test per staff row; staff login audited and throttled; Django Admin pages served with their own CSP (moved from F1.9); staff 2FA step added here **only if OQ-002 is accepted** | REQ-F-ADM-08, DEC-016, ADR-005 §5 |
-| F9.2 | `feat(backoffice): add couple, user and invite admin` | Admin actions call existing use cases (create couple, resend/revoke invite, correct birth date, set timezone); architecture test: Card, Memory, Song, Place, Note are **not** registered | REQ-F-ADM-01/02/04/09, REQ-N-SEC-08 |
+| F9.2 | `feat(backoffice): add couple, user and invite admin` | Admin actions call existing use cases (create couple, resend/revoke invite, correct birth date, set timezone); architecture test: Card, Memory, Song, Place, Note are **not** registered; a partner's email and password are read-only in the admin (no takeover path to content; a mistyped email before onboarding = revoke + new invite); `has_delete_permission = False` and no "delete selected" on Couple, User, Invite (archive is the only exit); a migration extends the F2.2 trigger to reject setting `is_staff` / `is_superuser` on a user with a membership | REQ-F-ADM-01/02/04/09, REQ-N-SEC-08, DEC-015 |
 | F9.3 | `feat(backoffice): add quotas and settings admin` | Changing a quota is audited and applies to the next reservation; per-couple override | REQ-F-ADM-05 |
 | F9.4 | `feat(identity): add archive couple use case` | Accounts disabled, refresh tokens revoked, actor cache deleted (F2.15), `purge_after = +90 d`, audited; login → `couple_archived` | REQ-F-ADM-03, REQ-F-AUTH-09, DEC-019 |
-| F9.5 | `feat(backoffice): add archived couple purge job` | Maintenance role, DATA-001 §7 order, media prefix deleted, DEK deleted; a ciphertext copied before purge cannot be decrypted afterwards; audit rows remain | DEC-019, ADR-009 §5, ADR-014 §5 |
+| F9.5 | `feat(backoffice): add archived couple purge job` | Maintenance role, DATA-001 §7 order **plus** library-owned tables (SimpleJWT outstanding/blacklisted tokens) and `notifications_*` before `identity_user`; media prefix deleted, DEK deleted; a test generated from the model registry asserts no table keeps a row referencing the couple or its users (a new table cannot be forgotten); a ciphertext copied before purge cannot be decrypted afterwards; audit rows remain | DEC-019, ADR-009 §5, ADR-014 §5 |
 | F9.6 | `feat(backoffice): add export before purge` | Shape per OQ-005 | REQ-F-ADM-03 |
 | F9.7 | `feat(backoffice): add metric rollups and dashboard` | Daily/weekly/monthly rollups from audit into `backoffice_metric_rollup`; the dashboard never scans raw audit; "items visited" per OQ-007 | REQ-F-ADM-06, ADR-008 §6 |
 | F9.8 | `feat(backoffice): add audit log viewer` | Filters type, date, couple, user; date range required and ≤ 31 days; `EXPLAIN` touches ≤ 2 partitions | REQ-F-ADM-07, ADR-008 §6 |
@@ -487,5 +487,5 @@ Recorded in `02-requirements/open-questions.md` with recommendations. Each block
 
 ## Next step
 
-Camilo reviews F0 first. On `F0 approved`, its status changes here and in `STATUS.md` (IMPL-API-001), and the F0
-branch starts in `cherrylove-api` with step F0.1.
+All phases approved (2026-11-16). Implementation starts in `cherrylove-api` on branch `phase/0-foundations` with
+step F0.1 (DEC-037 spike), after this plan is merged. Open questions in §14 block only their listed steps.
