@@ -25,12 +25,12 @@ Approval states per phase: `draft` → `in_review` → `approved`. Only an appro
 |-------|------|--------|
 | F0 | Foundations (spike, toolchain, stack, CI) | **approved** (Camilo, 2026-11-12) |
 | F1 | Shared kernel | **approved** with patches F1.9, F1.12 (Camilo, 2026-11-12) |
-| F2 | Identity (membership, invites, auth) | **approved** with patches F2.5, F2.8, F2.12/13, F2.15 and OQ-011 (Camilo, 2026-11-13) |
-| F3 | Cards | **approved** with patches F3.2, F3.3, F3.5, integration test, §2 upsert rule and OQ-012 (Camilo, 2026-11-13) |
+| F2 | Identity (membership, invites, auth) | **approved** with patches F2.5, F2.8, F2.12/13, F2.15 and OQ-017 (Camilo, 2026-11-13) |
+| F3 | Cards | **approved** with patches F3.2, F3.3, F3.5, integration test, §2 upsert rule and OQ-018 (Camilo, 2026-11-13) |
 | F4 | Media + memories (songs, places) | **approved** with patches F4.8, F4.10…F4.13 (Camilo, 2026-11-13) |
 | F5 | Diary | **approved** with patches F5.3, F5.5 and F0.8 addendum (Camilo, 2026-11-13) |
 | F6 | Favorites + home (+ load generator) | **approved** with patches F6.3, F6.5, F6.6, F6.7 and F7.4 note (Camilo, 2026-11-13) |
-| F7 | Sync | **approved** with patches F7.1, F7.2, F7.4, F7.6, F6.5 wording and OQ-013 (Camilo, 2026-11-13) |
+| F7 | Sync | **approved** with patches F7.1, F7.2, F7.4, F7.6, F6.5 wording and OQ-019 (Camilo, 2026-11-13) |
 | F8 | Notifications + scheduled jobs | **approved** with patches F8.4, F8.5, F8.8, F8.9 (Camilo, 2026-11-16) |
 | F9 | Backoffice | **approved** with patches F9.2, F9.5 (Camilo, 2026-11-16) |
 
@@ -147,10 +147,10 @@ ADR-008 §4, ADR-015, ADR-016.
 | ID | Commit | Test (proves) | IDs |
 |----|--------|---------------|-----|
 | F0.1 | `test(media): add presigned POST acceptance spike for local S3 servers` | `tests/integration/media/test_presigned_post_acceptance.py`, parametrized per candidate (RustFS, SeaweedFS, Versity, Garage) in `spike/compose.s3.yaml`: valid upload accepted; size outside `content-length-range` rejected **by storage**; wrong `Content-Type` rejected; expired policy rejected; signed GET works then expires; bucket CORS limited to one origin; private by default | DEC-037, ADR-007 §2/§7 |
-| — | **Stop point** | Results table in the PR. Camilo records **DEC-041** (local S3 server). Criteria: passes every case, not archived, release in the last 6 months, one container, x86 + ARM image. Spike Compose file deleted in F0.4 | DEC-037 |
+| — | **Stop point** | Results table in the PR. Camilo records **DEC-047** (local S3 server). Criteria: passes every case, not archived, release in the last 6 months, one container, x86 + ARM image. Spike Compose file deleted in F0.4 | DEC-037 |
 | F0.2 | `build: pin Python toolchain with uv` | `tests/architecture/test_toolchain.py`: interpreter is 3.14.10; every direct dependency in `uv.lock` equals its pin in `pins.toml` (copy of §1) | ADR-016, REQ-N-QA-05 |
 | F0.3 | `chore(django): add Django project skeleton` | `tests/integration/test_settings.py`: `check --deploy` passes on `production.py` with dummy env; settings read only env vars; `/healthz` returns 200 and checks DB | ADR-002 §1, DEC-039 |
-| F0.4 | `chore(compose): add local stack` | `tests/integration/test_local_stack.py`: PostgreSQL 18.6, Redis 8.8.4, Mailpit, DEC-041 server reachable; bucket exists and is private; a sent mail appears in Mailpit's API | REQ-N-OPS-01, DEC-041 |
+| F0.4 | `chore(compose): add local stack` | `tests/integration/test_local_stack.py`: PostgreSQL 18.6, Redis 8.8.4, Mailpit, DEC-047 server reachable; bucket exists and is private; a sent mail appears in Mailpit's API | REQ-N-OPS-01, DEC-047 |
 | F0.5 | `feat(shared): add app and maintenance database roles` | `tests/integration/test_db_roles.py`: migrations run as `cherrylove_maintenance`; `cherrylove_app` gets DML through default privileges and is denied DDL | ADR-008 §4, DATA-001 §3 |
 | F0.6 | `chore(arch): add import-linter contracts and module skeletons` | `tests/architecture/test_import_contracts.py`: contracts pass; every module has the four layers; a fixture module that imports Django in `domain` is reported | ADR-001 §6, REQ-N-ARC-01 |
 | F0.7 | `chore(contract): import approved OpenAPI v1 contract` | `tests/contract/test_contract_file.py`: `contract/openapi.v1.yaml` is byte-identical to API-001; OpenAPI 3.1; operation IDs follow `<tag>_<verb>_<noun>` | ADR-003 §1/§5 |
@@ -161,9 +161,9 @@ ADR-008 §4, ADR-015, ADR-016.
 | F0.12 | `build: add api and worker images and publish workflows` | `tests/integration/test_images.py` (CI job): both images start and answer `/healthz`; images run as non-root. Publish to `ghcr.io` on `main`; contract asset `contract-v1.MINOR.PATCH` on merges touching `contract/` | ADR-015 §4, ADR-003 §3 |
 
 **Phase integration test:** `tests/integration/test_phase0_stack.py` — fresh Compose stack, migrate as
-maintenance role, `/healthz` OK as app role, one presigned POST round trip against the DEC-041 server.
+maintenance role, `/healthz` OK as app role, one presigned POST round trip against the DEC-047 server.
 
-**Done when:** common criteria (§2) + DEC-041 recorded + `ci` added as the required check on `main` (STATUS.md
+**Done when:** common criteria (§2) + DEC-047 recorded + `ci` added as the required check on `main` (STATUS.md
 note from session R) + contract in `contract/` approved with error enums and examples.
 
 **Recommendations inside this phase (approved with it):**
@@ -243,7 +243,7 @@ ADR-009 §1, ADR-011 §1, ADR-012 §4, DATA-001 §3.
 | F2.13 | `feat(identity): add password recovery` | Same status and body whether the email exists or not; token valid 30 min, dead after password change; email in the account's language; throttle 3/h per email, failing closed | REQ-F-AUTH-08, ADR-004 §4, ADR-012 §4 |
 | F2.14 | `feat(identity): add actor resolution with cached membership` | `IsCouplePartner`: active user, has couple, couple active; cached `actor:{user_id}` 10 min; actor never read from URL/body/header | ADR-005 §1, ADR-011 §1, REQ-N-SEC-01 |
 | F2.15 | `feat(identity): add deactivate user with actor cache invalidation` | New use case `deactivate_user` (REQ-F-ADM-01, reused by F9.2) revokes refresh tokens and deletes the key; the next request with a still-valid access token is rejected at once (not after 10 min); the same hook is called by F9.4 | ADR-005 consequence, REQ-F-AUTH-09 |
-| F2.16 | `feat(identity): add me, couple header and change password` | `identity_get_me`/`update_me` (name, language; birth date read-only); `home_get_couple`; `identity_change_password` needs the current password and revokes every other session; how the current session is identified follows OQ-011 | REQ-F-ACC-02/03/04, REQ-F-HOME-01, DEC-025 |
+| F2.16 | `feat(identity): add me, couple header and change password` | `identity_get_me`/`update_me` (name, language; birth date read-only); `home_get_couple`; `identity_change_password` needs the current password and revokes every other session; how the current session is identified follows OQ-017 | REQ-F-ACC-02/03/04, REQ-F-HOME-01, DEC-025 |
 | F2.17 | `test(identity): add generated cross-couple suite and identity matrix rows` | Harness walks the URL conf; every route with an ID parameter needs a resource factory or the test fails; couple B's token on couple A's ID → 404. Permission-matrix rows for onboarding | ADR-005 §7, ADR-014 §5, REQ-N-SEC-02 |
 
 **Phase integration test:** `tests/integration/identity/test_onboarding_journey.py` — `create_couple` → invite in
@@ -268,7 +268,7 @@ REQ-N-PERF-03, REQ-N-PERF-04, REQ-F-SYNC-05 (columns). ADR-005 §4, ADR-006 §1,
 |----|--------|---------------|-----|
 | F3.1 | `feat(cards): add card entity and policies` | Unit: edit/delete only by author (`not_author` 403) and only before publish (`card_already_published` 409); partner's scheduled card invisible | REQ-F-CARD-05/06/07, ADR-005 §4 |
 | F3.2 | `feat(cards): add card table with encrypted body` | Integration: `body_enc` holds no plaintext; trigger rejects body/`publish_at` change **and setting `deleted_at`** after publish (hard purge by the maintenance role unaffected); composite FK to membership; indexes from DATA-001 | REQ-N-SEC-05, DATA-001 §4 |
-| F3.3 | `feat(cards): add upsert and delete use cases and endpoints` | `cards_upsert_card` (client UUIDv7, `version` + 1, optional `base_version` kept for F7), `cards_delete_card` (tombstone); change recorded and audited in the same transaction; an ID owned by another couple → 404; `publish_at` already past follows OQ-012 | REQ-F-CARD-05/07, REQ-F-SYNC-03/05 |
+| F3.3 | `feat(cards): add upsert and delete use cases and endpoints` | `cards_upsert_card` (client UUIDv7, `version` + 1, optional `base_version` kept for F7), `cards_delete_card` (tombstone); change recorded and audited in the same transaction; an ID owned by another couple → 404; `publish_at` already past follows OQ-018 | REQ-F-CARD-05/07, REQ-F-SYNC-03/05 |
 | F3.4 | `feat(cards): add publish due cards use case` | `FixedClock`: due cards get `published_at`, a change per card, idempotent on rerun; run by `manage.py publish_due_cards` until the F8 scheduler | REQ-F-CARD-06, ADR-006 §1, ADR-013 §3 |
 | F3.5 | `feat(cards): add today query with deterministic past card` | "Published today" = civil date of `published_at` in the couple timezone (test zone **with DST**); carousel order identical for both partners; no card today → same random past card for both (seed = couple + civil date, seeded port); cache key `cards:today:{couple}:{date}:{seq}` holds IDs only; Redis down → same answer | REQ-F-CARD-01/02/03/04, ADR-011 §1, ADR-014 §4 |
 | F3.6 | `feat(cards): add my cards, get card and pending count` | `cards_list_mine` cursor-paginated with a fixed query count (`django_assert_num_queries`); partner's scheduled card → 404; `cards_get_pending_count` returns a number only | REQ-F-CARD-05/06, REQ-N-PERF-02, DEC-007 |
@@ -360,7 +360,7 @@ ADR-014 §1.
 | F6.2 | `feat(diary): add batched visibility facade` | Same for notes; partner's `only_me` never returned | REQ-F-FAV-04 |
 | F6.3 | `feat(favorites): add star and unstar` | `favorites_star_item` / `favorites_unstar_item`: only visible items (else 404); same `favorite_id` + same item again → 201 with the existing favorite (idempotent retry); another ID for an already starred item → `already_favorited` 409; partial unique; composite FK on `(couple_id, user_id)` | REQ-F-MEM-06, REQ-F-SONG-04, REQ-F-PLACE-04, REQ-F-NOTE-04 |
 | F6.4 | `feat(favorites): add my favorites list with type filter` | `favorites_list_mine`: filter by type, memories carry `memory_date` for grouping, cursor, fixed query count | REQ-F-FAV-01/02/03 |
-| F6.5 | `feat(favorites): hide favorites of deleted or private items` | A favorite is visible to an actor only if its **item** is (no favorite record carrying the ID of A's `only_me` note ever reaches B; a bare pull `delete` follows ADR-006 §4 and OQ-013) in home, list and sync pull (F7.4); read-time visibility filter is the guarantee; event handler tombstones the partner's favorite and records a change so devices drop it; test both, including a lost event | REQ-F-FAV-04, ADR-001 §4 |
+| F6.5 | `feat(favorites): hide favorites of deleted or private items` | A favorite is visible to an actor only if its **item** is (no favorite record carrying the ID of A's `only_me` note ever reaches B; a bare pull `delete` follows ADR-006 §4 and OQ-019) in home, list and sync pull (F7.4); read-time visibility filter is the guarantee; event handler tombstones the partner's favorite and records a change so devices drop it; test both, including a lost event | REQ-F-FAV-04, ADR-001 §4 |
 | F6.6 | `feat(favorites): add home dashboard` | `home_get_dashboard`: header via identity facade + both partners' favorites grouped **one row per item** (`starred_by` array, API-001 `TimelineItem`), ordered by latest `starred_at` with keyset cursor; cache `home:{couple}:{seq}` holds first-page refs only; batched hydration | REQ-F-HOME-01/02/03, ADR-011 §1 |
 | F6.7 | `feat(shared): add load-data generator` | `manage.py seed_load` (refuses outside local settings): 1 M rows each in `memories_memory`, `cards_card`, `diary_note`, `favorites_favorite`, `audit_event`, `sync_entity_index`, spread over many couples, real encryption, `COPY`-based; runs as the maintenance role, creates the past audit partitions it fills, and records every seeded entity in `sync_entity_index`; integration test with a small N checks counts and constraints | REQ-N-PERF-06, DEC-034, DATA-001 §6 |
 | F6.8 | `perf: add k6 scripts and query plan report` | `perf/k6/{today,home,lists}.js` with threshold p95 < 200 ms, cache on and off; `perf/explain.py` stores `EXPLAIN ANALYZE` at 1 M rows; `tests/perf/` (marker `perf`, local/nightly) asserts index scans | REQ-N-PERF-01/03, ADR-011 §6, ADR-014 §1 |
@@ -388,7 +388,7 @@ ADR-005 §6, ADR-006, ADR-010 §4, ADR-014 §1/§5.
 | F7.1 | `feat(sync): add client operation store` | Same `client_op_id` twice → stored result returned, use case not run again; an `applied` result is stored inside the op's transaction, a `rejected` one right after its rollback (ADR-008 §3 pattern), so one `client_op_id` never gets two different results | REQ-F-SYNC-04 |
 | F7.2 | `feat(sync): add push endpoint` | `sync_push_operations`: ≤ 100 ordered ops, **one transaction per op**, dispatched to the same use cases with the same `Actor` (writable types: card, memory, song, place, note, favorite; `couple` is read-only → `rejected`); results `applied` / `rejected` (embedded Problem) / `gone`; later ops on a rejected entity rejected; other couple's entity → rejected as not found without aborting the batch; one audit per op + `sync.pushed` | REQ-F-SYNC-02/04/10, ADR-006 §2, ADR-005 §6 |
 | F7.3 | `feat(sync): add last-write-wins with tombstones` | Older `base_version` still applies with `overwrote_newer: true` (result + audit); update after delete → `gone` | REQ-F-SYNC-05, ADR-006 §3 |
-| F7.4 | `feat(sync): add pull endpoint` | `sync_pull_changes`: opaque `seq` cursor, ≤ 500, batched facade loads per type; invisible → `delete` per OQ-013 (favorites follow their item's visibility, F6.5); `next_cursor` = last `seq` **scanned**, not last change returned (a fully filtered page still advances); `pending_card_count`; cursor older than `purged_through_seq` → 410 `cursor_expired` | REQ-F-SYNC-06, ADR-006 §4 |
+| F7.4 | `feat(sync): add pull endpoint` | `sync_pull_changes`: opaque `seq` cursor, ≤ 500, batched facade loads per type; invisible → `delete` per OQ-019 (favorites follow their item's visibility, F6.5); `next_cursor` = last `seq` **scanned**, not last change returned (a fully filtered page still advances); `pending_card_count`; cursor older than `purged_through_seq` → 410 `cursor_expired` | REQ-F-SYNC-06, ADR-006 §4 |
 | F7.5 | `feat(identity): record couple header changes for sync` | Name or relationship-start change bumps `seq`; pull returns entity type `couple` | ADR-006 §7 |
 | F7.6 | `feat(sync): add tombstone and client operation purge` | Use cases (scheduled in F8): tombstones > 90 days hard-deleted together with their `sync_entity_index` row, and `purged_through_seq` advanced; client ops > 30 days deleted | ADR-006 §1/§5 |
 | F7.7 | `test(sync): add property-based sync invariants` | Hypothesis: replay idempotency; cursor never skips under concurrent writers; deletes win; invisible → delete | ADR-014 §1/§5 |
@@ -481,9 +481,9 @@ Recorded in `02-requirements/open-questions.md` with recommendations. Each block
 | OQ-008 | How a media status change reaches the device (no `media` sync entity type in API-001) | F0.8, F4.7 |
 | OQ-009 | ~~May the song form link the partner's memories?~~ Resolved by API-001 (`SongInput.memory_ids`: own memories only) | — |
 | OQ-010 | Reminders for a 29 February date in non-leap years | F8.9 |
-| OQ-011 | Change password cannot tell which session is the current one | F2.16 |
-| OQ-012 | A card created or edited with a `publish_at` already in the past | F3.3 |
-| OQ-013 | Pull `delete` for an item never visible to the partner reveals that it exists | F7.4 |
+| OQ-017 | Change password cannot tell which session is the current one | F2.16 |
+| OQ-018 | A card created or edited with a `publish_at` already in the past | F3.3 |
+| OQ-019 | Pull `delete` for an item never visible to the partner reveals that it exists | F7.4 |
 
 ## Next step
 

@@ -23,7 +23,7 @@ Control board for human approval. Nothing below `approved` is a decision.
 | REQ-DOC-001 | `02-requirements/functional.md` | **approved** (frozen) | Camilo | 2026-11-11 |
 | REQ-DOC-002 | `02-requirements/nfr.md` | **approved** (frozen) | Camilo | 2026-11-11 |
 | REQ-DOC-003 | `02-requirements/roles-actuators.md` | **approved** (frozen) | Camilo | 2026-11-11 |
-| REQ-DOC-004 | `02-requirements/open-questions.md` | **approved** (open post-freeze: OQ-002, OQ-005…010; OQ-011…016 resolved 2026-11-13) | Camilo | 2026-11-11 |
+| REQ-DOC-004 | `02-requirements/open-questions.md` | **approved** (open post-freeze: OQ-002, OQ-005…008, OQ-010, OQ-017…019; OQ-009, OQ-011…016 resolved) | Camilo | 2026-11-11 |
 | UX-001 | `03-ux-ui/` | not_started | | |
 | C4-001 | `04-architecture/c4-context-containers.md` | **approved** | Camilo | 2026-11-11 |
 | ADR-001 | `04-architecture/adr-001-modular-monolith.md` | **approved** | Camilo | 2026-11-11 |
@@ -46,7 +46,7 @@ Control board for human approval. Nothing below `approved` is a decision.
 | ADR-016 | `04-architecture/adr-016-pinned-versions.md` | **approved** | Camilo | 2026-11-12 |
 | ADR-* | `04-architecture/` (index in README) | not_started | | |
 | LEARN-001 | `05-learning/` | not_started | | |
-| IMPL-API-001 | `06-implementation/api/impl-api-001-plan.md` | **approved** (F0…F9; OQ-002, OQ-005…008, OQ-010…013 block single steps) | Camilo | 2026-11-16 |
+| IMPL-API-001 | `06-implementation/api/impl-api-001-plan.md` | **approved** (F0…F9; OQ-002, OQ-005…008, OQ-010, OQ-017…019 block single steps) | Camilo | 2026-11-16 |
 | IMPL-CORE-001 | `06-implementation/core/plan-core.md` | **approved** | Camilo | 2026-11-13 |
 | IMPL-* | `06-implementation/` (web, mobile) | not_started | | |
 | TEST-001 | `07-testing/` | not_started | | |
