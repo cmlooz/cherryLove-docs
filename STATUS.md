@@ -78,7 +78,7 @@ The older empty repo `cmlooz/CherryLove` is not part of DEC-004 and was left unt
 
 1. Approve GOV-001, GOV-002, GOV-004, GLO-001, AN-001, AGENT-001.
 2. Answer OQ-002 (staff 2FA).
-3. Plan F to absorb OQ-014 / DEC-044 (JSON contract asset, F0.12) and OQ-016 / DEC-046 (`FieldErrorCode`, F0.8).
+3. Answer the plan F open questions OQ-005…008, OQ-010, OQ-017…019 (each blocks one step, IMPL-API-001 §14).
 
 ## Checklist for freeze
 
