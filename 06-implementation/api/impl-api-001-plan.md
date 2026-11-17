@@ -31,7 +31,7 @@ Approval states per phase: `draft` → `in_review` → `approved`. Only an appro
 | F5 | Diary | **approved** with patches F5.3, F5.5 and F0.8 addendum (Camilo, 2026-11-13) |
 | F6 | Favorites + home (+ load generator) | **approved** with patches F6.3, F6.5, F6.6, F6.7 and F7.4 note (Camilo, 2026-11-13) |
 | F7 | Sync | **approved** with patches F7.1, F7.2, F7.4, F7.6, F6.5 wording and OQ-013 (Camilo, 2026-11-13) |
-| F8 | Notifications + scheduled jobs | draft |
+| F8 | Notifications + scheduled jobs | **approved** with patches F8.4, F8.5, F8.8, F8.9 (Camilo, 2026-11-16) |
 | F9 | Backoffice | draft |
 
 ---
@@ -418,12 +418,12 @@ DEC-026, DEC-036, ADR-008 §5, ADR-012 §4, ADR-013.
 | F8.1 | `feat(shared): add scheduler with slot keys` | Two schedulers ticking together enqueue each slot once (`shared_scheduler_slot` unique) | ADR-013 §3 |
 | F8.2 | `feat(identity): add invite expiry job` | Pending invites older than 72 h → `expired` | REQ-F-AUTH-02, DEC-017 |
 | F8.3 | `feat(audit): add partition maintenance job` | `FixedClock`: keeps 3 future months; detaches and drops partitions older than the retention setting; runs on the maintenance DB alias | REQ-F-LOG-04, ADR-008 §5 |
-| F8.4 | `feat(shared): schedule periodic jobs` | Registry: publish cards (1 min), invite expiry and stale reservations (hourly), tombstones, client ops, partitions (daily); Compose gains `worker-default`, `worker-media`, `scheduler` | ADR-013 §1/§3 |
-| F8.5 | `feat(notifications): add devices and preferences` | `notifications_register_device`, `notifications_delete_device`, `notifications_get_preferences`, `notifications_update_preferences`; no row = enabled | REQ-F-NOTIF-04, REQ-F-ACC-05, ADR-013 §4/§5 |
+| F8.4 | `feat(shared): schedule periodic jobs` | Registry: publish cards (1 min), Expo receipts (15 min), invite expiry and stale reservations (hourly), unattached media cleanup (F4.8), tombstones, client ops, partitions (daily); archived-couple purge and rollups are registered in F9; Compose gains `worker-default`, `worker-media`, `scheduler` | ADR-013 §1/§3 |
+| F8.5 | `feat(notifications): add devices and preferences` | `notifications_register_device`, `notifications_delete_device`, `notifications_get_preferences`, `notifications_update_preferences`; no row = enabled; registering an existing `(channel, token)` **moves it to the current user** (shared phone never gets the previous user's pushes; clients delete their device on logout — note for plans H2/H/G); Web Push `endpoint` must be `https` on an allowlisted push host (FCM, Mozilla, Apple, Windows), else 400 — prevents SSRF from the worker | REQ-F-NOTIF-04, REQ-F-ACC-05, ADR-013 §4/§5 |
 | F8.6 | `feat(notifications): add Expo push adapter and receipts` | Fake Expo endpoint: send, receipts job every 15 min, `DeviceNotRegistered` deletes the token (`requests` enters) | REQ-F-NOTIF-03, ADR-013 §4 |
 | F8.7 | `feat(notifications): add Web Push adapter` | VAPID from env; 404/410 deletes the subscription (`pywebpush` enters) | REQ-F-NOTIF-03 |
-| F8.8 | `feat(notifications): send card published push` | Publish enqueues one job per recipient in the same transaction (`push:card_published:{card}:{user}`); preference checked at run time; gettext text in the recipient's language; payload `{type, card_id}` only — test asserts the body is absent | REQ-F-NOTIF-01/04/05, ADR-012 §4 |
-| F8.9 | `feat(notifications): add anniversary and birthday reminders` | Hourly tick sends at 09:00 couple time, yearly (DEC-036), anniversary to both, birthday to the other partner; 29 Feb rule per OQ-010 | REQ-F-NOTIF-02, DEC-036 |
+| F8.8 | `feat(notifications): send card published push` | Publish enqueues one job per recipient in the same transaction (`push:card_published:{card}:{user}`); preference, active recipient and active couple re-checked at run time (ADR-005 §1); gettext text in the recipient's language; payload `{type, card_id}` only — test asserts the body is absent | REQ-F-NOTIF-01/04/05, ADR-012 §4 |
+| F8.9 | `feat(notifications): add anniversary and birthday reminders` | Hourly tick sends **at or after** 09:00 couple time, once per local date (catches up after downtime), yearly (DEC-036), anniversary to both, birthday to the other partner; skipped when the date is missing or the partner has not onboarded; recipient and couple re-checked at run time; 29 Feb rule per OQ-010 | REQ-F-NOTIF-02, DEC-036 |
 
 **Phase integration test:** a card is published → one push job per recipient → fake Expo receives a payload without
 the body, in the recipient's language → toggling the preference off before the job runs prevents the send → running
