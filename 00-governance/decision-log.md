@@ -79,3 +79,9 @@ Append-only. Each row was answered explicitly by Camilo. Changing a decision = n
 | DEC-044 | Contract JSON asset (OQ-014) | The API publishes the contract release asset **also as JSON** (plan F step F0.12), so core reads constraints and enums with `JSON.parse` and no YAML dependency. |
 | DEC-045 | Outbox on `cursor_expired` (OQ-015) | On 410 `cursor_expired` the client wipes local entities and the cursor but **keeps the outbox**, runs a full resync, then replays the outbox (ops are idempotent by `client_op_id`; the server answers `gone`/`rejected` where they no longer apply). Interprets "wipes its local store" in ADR-006 §4; serves REQ-F-SYNC-02. |
 | DEC-046 | Field error codes (OQ-016) | The contract gets an additive `FieldErrorCode` enum for `Problem.errors[].code` (plan F step F0.8; contract change approved in that PR). Core validators emit only those codes and core CI checks `validation.<code>` in es and en, as ADR-010 §6 does for `ErrorCode`. |
+
+## 2026-11-18 — Plan F, phase F0 (DEC-037 spike)
+
+| ID | Topic | Decision |
+|----|-------|----------|
+| DEC-047 | Local S3 server (DEC-037 spike, IMPL-API-001 F0.1) | **Versity S3 Gateway v1.11.0** (`versity/versitygw`, POSIX backend) is the local S3-compatible server. Spike in cmlooz/cherrylove-api#1: Versity, RustFS 1.0.6 and SeaweedFS 4.54 passed all 8 ADR-007 §2/§7 cases; Garage v2.5.0 failed bucket CORS (preflight answers `*`). Chosen for being a single binary that maps buckets to plain folders, with no cluster bootstrap. Fills the ADR-016 §2 "object storage (local)" pin; production storage stays a later ADR (DEC-022). |
