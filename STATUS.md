@@ -23,7 +23,7 @@ Control board for human approval. Nothing below `approved` is a decision.
 | REQ-DOC-001 | `02-requirements/functional.md` | **approved** (frozen) | Camilo | 2026-11-11 |
 | REQ-DOC-002 | `02-requirements/nfr.md` | **approved** (frozen) | Camilo | 2026-11-11 |
 | REQ-DOC-003 | `02-requirements/roles-actuators.md` | **approved** (frozen) | Camilo | 2026-11-11 |
-| REQ-DOC-004 | `02-requirements/open-questions.md` | **approved** (open post-freeze: OQ-002, OQ-005, OQ-010, OQ-017…019; OQ-006…009, OQ-011…016 resolved) | Camilo | 2026-11-11 |
+| REQ-DOC-004 | `02-requirements/open-questions.md` | **approved** (open post-freeze: OQ-002, OQ-005, OQ-010, OQ-018, OQ-019; OQ-006…009, OQ-011…017 resolved) | Camilo | 2026-11-11 |
 | UX-001 | `03-ux-ui/` | not_started | | |
 | C4-001 | `04-architecture/c4-context-containers.md` | **approved** | Camilo | 2026-11-11 |
 | ADR-001 | `04-architecture/adr-001-modular-monolith.md` | **approved** | Camilo | 2026-11-11 |
@@ -46,7 +46,7 @@ Control board for human approval. Nothing below `approved` is a decision.
 | ADR-016 | `04-architecture/adr-016-pinned-versions.md` | **approved** | Camilo | 2026-11-12 |
 | ADR-* | `04-architecture/` (index in README) | not_started | | |
 | LEARN-001 | `05-learning/` | not_started | | |
-| IMPL-API-001 | `06-implementation/api/impl-api-001-plan.md` | **approved** (F0…F9; OQ-002, OQ-005, OQ-010, OQ-017…019 block single steps) | Camilo | 2026-11-16 |
+| IMPL-API-001 | `06-implementation/api/impl-api-001-plan.md` | **approved** (F0…F9; OQ-002, OQ-005, OQ-010, OQ-018, OQ-019 block single steps) | Camilo | 2026-11-16 |
 | IMPL-CORE-001 | `06-implementation/core/plan-core.md` | **approved** | Camilo | 2026-11-13 |
 | IMPL-* | `06-implementation/` (web, mobile) | not_started | | |
 | TEST-001 | `07-testing/` | not_started | | |
@@ -78,7 +78,7 @@ The older empty repo `cmlooz/CherryLove` is not part of DEC-004 and was left unt
 
 1. Approve GOV-001, GOV-002, GOV-004, GLO-001, AN-001, AGENT-001.
 2. Answer OQ-002 (staff 2FA).
-3. Answer the plan F open questions OQ-005, OQ-010, OQ-017…019 (each blocks one step, IMPL-API-001 §14).
+3. Answer the plan F open questions OQ-005, OQ-010, OQ-018, OQ-019 (each blocks one step, IMPL-API-001 §14).
 
 ## Checklist for freeze
 
